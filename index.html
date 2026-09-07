@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Sistema de Pedidos</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <h1>Sistema de Pedidos</h1>
+
+    <!-- Navegación -->
+    <nav>
+        <button data-pestana="nuevo-pedido">Nuevo pedido</button>
+        <button data-pestana="pendientes">Pedidos pendientes</button>
+        <button data-pestana="ventas">Ventas</button>
+    </nav>
+
+
+    <!-- ============================== -->
+    <!-- PESTAÑA: NUEVO PEDIDO -->
+    <!-- ============================== -->
+
+    <main id="nuevo-pedido" class="pestana">
+
+        <section id="menu">
+            <h2>Menú</h2>
+
+            <div class="producto">
+                <button>-</button>
+                <span>0</span>
+                <span>Hamburguesa simple</span>
+                <span>$50</span>
+                <button>+</button>
+            </div>
+
+            <div class="producto">
+                <button>-</button>
+                <span>0</span>
+                <span>Hamburguesa doble</span>
+                <span>$70</span>
+                <button>+</button>
+            </div>
+
+            <div class="producto">
+                <button>-</button>
+                <span>0</span>
+                <span>Papas</span>
+                <span>$30</span>
+                <button>+</button>
+            </div>
+
+            <div class="producto">
+                <button>-</button>
+                <span>0</span>
+                <span>Refresco</span>
+                <span>$20</span>
+                <button>+</button>
+            </div>
+
+        </section>
+
+
+        <section id="pedido-actual">
+
+            <h2>Pedido actual</h2>
+
+            <div id="lista-pedido">
+                <p>No hay productos seleccionados.</p>
+            </div>
+
+            <h3>
+                Total: $<span id="total">0</span>
+            </h3>
+
+            <button id="crear-pedido">Crear pedido</button>
+
+        </section>
+
+    </main>
+
+
+    <!-- ============================== -->
+    <!-- PESTAÑA: PEDIDOS PENDIENTES -->
+    <!-- ============================== -->
+
+    <main id="pendientes" class="pestana">
+
+        <h2>Pedidos pendientes</h2>
+
+        <div id="lista-pedidos-pendientes"></div>
+
+    </main>
+
+
+    <!-- ============================== -->
+    <!-- PESTAÑA: VENTAS -->
+    <!-- ============================== -->
+
+    <main id="ventas" class="pestana">
+
+        <h2>Ventas</h2>
+
+        <div id="resumen-ventas">
+
+            <h3>Resumen</h3>
+
+            <p>
+                Pedidos completados:
+                <span id="ventas-pedidos">0</span>
+            </p>
+
+            <p>
+                Productos vendidos:
+                <span id="ventas-productos">0</span>
+            </p>
+
+            <p>
+                Total vendido:
+                $<span id="ventas-total">0</span>
+            </p>
+
+        </div>
+
+    </main>
+
+
+    <script src="js/app.js"></script>
+
+</body>
+</html>

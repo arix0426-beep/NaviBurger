@@ -1,0 +1,7 @@
+.pestana {
+    display: none;
+}
+
+.pestana.activa {
+    display: block;
+}
