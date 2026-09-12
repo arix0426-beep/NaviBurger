@@ -4,25 +4,90 @@
 
 const productos = [
     {
-        nombre: "Hamburguesa simple",
+        nombre: "Naviburger",
         precio: 50,
         cantidad: 0
     },
     {
-        nombre: "Hamburguesa doble",
+        nombre: "Naviburger con papas",
         precio: 70,
         cantidad: 0
     },
     {
-        nombre: "Papas",
+        nombre: "Hawanovi",
+        precio: 60,
+        cantidad: 0
+    },
+    {
+        nombre: "Hawanovi con papas",
+        precio: 80,
+        cantidad: 0
+    },
+    {
+        nombre: "Yayi Burger Especial",
+        precio: 70,
+        cantidad: 0
+    },
+    {
+        nombre: "Yayi Burger Especial con papas",
+        precio: 90,
+        cantidad: 0
+    },
+    {
+        nombre: "Yayidog",
         precio: 30,
         cantidad: 0
     },
     {
-        nombre: "Refresco",
-        precio: 20,
+        nombre: "Yayidog con papas",
+        precio: 50,
         cantidad: 0
-    }
+    },
+    {
+        nombre: "Yayidog Especial",
+        precio: 35,
+        cantidad: 0
+    },
+    {
+        nombre: "Yayidog Especial con papas",
+        precio: 55,
+        cantidad: 0
+    },
+    {
+        nombre: "Danidog",
+        precio: 25,
+        cantidad: 0
+    },
+    {
+        nombre: "Danidog con papas",
+        precio: 45,
+        cantidad: 0
+    },
+    {
+        nombre: "Sincronavi",
+        precio: 30,
+        cantidad: 0
+    },
+    {
+        nombre: "Sincronavi con papas",
+        precio: 50,
+        cantidad: 0
+    },
+    {
+        nombre: "Sincronavi Especial",
+        precio: 40,
+        cantidad: 0
+    },
+    {
+        nombre: "Sincronavi Especial con papas",
+        precio: 60,
+        cantidad: 0
+    },
+    {
+        nombre: "Orden de papas sola",
+        precio: 30,
+        cantidad: 0
+    },
 ];
 
 const pedidos = [];
