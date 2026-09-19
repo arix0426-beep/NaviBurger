@@ -1,6 +1,17 @@
 const NAVI_DATA_BASE = "naviburgerDB";  // NOMBRE
 const VERSION_BASE_DATOS = 2;           // VERSION
 
+function obtenerFechaActual() {
+
+    const fecha = new Date();
+
+    const año = fecha.getFullYear();
+    const mes = String(fecha.getMonth() + 1).padStart(2, "0");
+    const dia = String(fecha.getDate()).padStart(2, "0");
+
+    return `${año}-${mes}-${dia}`;
+}
+
 let naviburgerDB;  // Variable universal
 
 // ------------------------

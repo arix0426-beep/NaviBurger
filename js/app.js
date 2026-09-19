@@ -127,6 +127,7 @@ const listaPedidosPendientes = document.querySelector("#lista-pedidos-pendientes
 const ventasPedidos = document.querySelector("#ventas-pedidos");
 const ventasProductos = document.querySelector("#ventas-productos");
 const ventasTotal = document.querySelector("#ventas-total");
+const botonNuevoDia = document.getElementById("nuevo-dia");
 
 // ==============================
 // ACTUALIZAR PEDIDO
@@ -229,7 +230,18 @@ botonesPestana.forEach((boton) => {
 
 });
 
+botonNuevoDia.addEventListener("click", () => {
 
+    const confirmar = confirm(
+        "¿Estás seguro de que quieres cerrar el día y comenzar uno nuevo?"
+    );
+
+    if (!confirmar) {
+        return;
+    }
+
+    cerrarDia(obtenerFechaActual());
+});
 
 cambiarPestana("nuevo-pedido");
 
