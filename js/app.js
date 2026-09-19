@@ -92,6 +92,26 @@ const productos = [
 
 const pedidos = [];
 
+abrirBaseDatos()
+    .then(() => {
+        return obtenerPedidos();
+    })
+    .then((pedidosGuardados) => {
+
+        pedidos.push(...pedidosGuardados);
+
+        siguienteNumeroPedido = Math.max(
+            ...pedidos.map((pedido) => pedido.numero), 
+            0
+        ) + 1;
+
+        obtenerHistorial();
+
+        renderizarPedidos();
+        actualizarVentas();
+
+    });
+
 let siguienteNumeroPedido = 1;
 
 
@@ -240,6 +260,8 @@ function crearPedido() {
 
     pedidos.push(nuevoPedido);
 
+    guardarPedido(nuevoPedido);
+
     siguienteNumeroPedido++;
 
     renderizarPedidos();
@@ -332,6 +354,8 @@ function terminarPedido(numeroPedido) {
 
     if (pedido) {
         pedido.estado = "terminado";
+        guardarPedido(pedido);
+        console.log("PEDIDOS ACTUALES:", pedidos);
     }
 
     renderizarPedidos();
