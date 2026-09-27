@@ -214,27 +214,39 @@
 
     <main id="ventas" class="pestana">
 
-        <h2>Ventas</h2>
+        <div class="subpestanas-ventas">
+            <button data-ventas="Hoy">Hoy</button>
+            <button data-ventas="Historial">Historial</button>
+        </div>
 
-        <div id="resumen-ventas">
+        <div id="ventas-hoy">
 
-            <h3>Resumen</h3>
+            <h2>Ventas</h2>
 
-            <p>
-                Pedidos completados:
-                <span id="ventas-pedidos">0</span>
-            </p>
+            <div id="resumen-ventas">
 
-            <p>
-                Productos vendidos:
-                <span id="ventas-productos">0</span>
-            </p>
+                <h3>Resumen</h3>
 
-            <p>
-                Total vendido:
-                $<span id="ventas-total">0</span>
-            </p>
+                <p>
+                    Pedidos completados:
+                    <span id="ventas-pedidos">0</span>
+                </p>
 
+                <p>
+                    Productos vendidos:
+                    <span id="ventas-productos">0</span>
+                </p>
+
+                <p>
+                    Total vendido:
+                    $<span id="ventas-total">0</span>
+                </p>
+
+            </div>
+        </div>
+
+        <div id="ventas-historial">
+            <p>El historial aparecerá aquí.</p>
         </div>
 
     </main>

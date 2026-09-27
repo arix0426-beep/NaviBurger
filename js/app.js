@@ -109,7 +109,7 @@ abrirBaseDatos()
 
         renderizarPedidos();
         actualizarVentas();
-
+        renderizarHistorial();
     });
 
 let siguienteNumeroPedido = 1;
@@ -205,6 +205,14 @@ elementosProducto.forEach((elemento, indice) => {
 const botonesPestana = document.querySelectorAll("[data-pestana]");
 const pestanas = document.querySelectorAll(".pestana");
 
+const subpestanasVentas = document.querySelectorAll(
+    "[data-ventas]"
+);
+
+const vistaVentasHoy = document.getElementById("ventas-hoy");
+const vistaVentasHistorial = document.getElementById(
+    "ventas-historial"
+);
 
 function cambiarPestana(nombrePestana) {
 
@@ -217,6 +225,64 @@ function cambiarPestana(nombrePestana) {
     pestanaSeleccionada.classList.add("activa");
 }
 
+function cambiarSubpestanaVentas(pestana) {
+
+    if (pestana === "Hoy") {
+        vistaVentasHoy.style.display = "block";
+        vistaVentasHistorial.style.display = "none";
+    }
+
+    if (pestana === "Historial") {
+        vistaVentasHoy.style.display = "none";
+        vistaVentasHistorial.style.display = "block";
+    }
+
+}
+
+function renderizarHistorial() {
+
+    obtenerHistorial()
+        .then((historial) => {
+
+            vistaVentasHistorial.innerHTML = "";
+
+            if (historial.length === 0) {
+
+                vistaVentasHistorial.innerHTML =
+                    "<p>No hay días registrados todavía.</p>";
+
+                return;
+            }
+
+            historial.forEach((dia) => {
+
+                const elementoDia = document.createElement("div");
+
+                elementoDia.innerHTML = `
+                    <h3>${dia.fecha}</h3>
+                    <p>Pedidos: ${dia.pedidos.length}</p>
+                    <p>Productos vendidos: ${
+                        Object.values(dia.productosVendidos)
+                            .reduce((total, cantidad) => total + cantidad, 0)
+                    }</p>
+                    <p>Ganancias: $${dia.ganancias}</p>
+                `;
+
+                vistaVentasHistorial.appendChild(elementoDia);
+
+            });
+
+        })
+        .catch((error) => {
+
+            console.error(
+                "Error al cargar el historial:",
+                error
+            );
+
+        });
+
+}
 
 botonesPestana.forEach((boton) => {
 
@@ -225,6 +291,18 @@ botonesPestana.forEach((boton) => {
         const nombrePestana = boton.dataset.pestana;
 
         cambiarPestana(nombrePestana);
+
+    });
+
+});
+
+subpestanasVentas.forEach((boton) => {
+
+    boton.addEventListener("click", () => {
+
+        cambiarSubpestanaVentas(
+            boton.dataset.ventas
+        );
 
     });
 
@@ -402,3 +480,4 @@ function actualizarVentas() {
     ventasProductos.textContent = cantidadProductos;
     ventasTotal.textContent = totalVentas;
 }
+
