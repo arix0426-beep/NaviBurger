@@ -254,18 +254,48 @@ function renderizarHistorial() {
                 return;
             }
 
+            const historialPorFecha = {};
+
             historial.forEach((dia) => {
+
+                if (!historialPorFecha[dia.fecha]) {
+                    historialPorFecha[dia.fecha] = [];
+                }
+
+                historialPorFecha[dia.fecha].push(dia);
+
+            });
+
+            Object.values(historialPorFecha).forEach((cierresDelDia) => {
+
+                const fecha = cierresDelDia[0].fecha;
+
+                let pedidos = 0;
+                let productosVendidos = 0;
+                let ganancias = 0;
+
+                cierresDelDia.forEach((dia) => {
+
+                    pedidos += dia.pedidos.length;
+
+                    productosVendidos += Object.values(
+                        dia.productosVendidos
+                    ).reduce(
+                        (total, cantidad) => total + cantidad,
+                        0
+                    );
+
+                    ganancias += dia.ganancias;
+
+                });
 
                 const elementoDia = document.createElement("div");
 
                 elementoDia.innerHTML = `
-                    <h3>${dia.fecha}</h3>
-                    <p>Pedidos: ${dia.pedidos.length}</p>
-                    <p>Productos vendidos: ${
-                        Object.values(dia.productosVendidos)
-                            .reduce((total, cantidad) => total + cantidad, 0)
-                    }</p>
-                    <p>Ganancias: $${dia.ganancias}</p>
+                    <h3>${fecha}</h3>
+                    <p>Pedidos: ${pedidos}</p>
+                    <p>Productos vendidos: ${productosVendidos}</p>
+                    <p>Ganancias: $${ganancias}</p>
                 `;
 
                 vistaVentasHistorial.appendChild(elementoDia);

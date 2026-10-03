@@ -1,5 +1,5 @@
 const NAVI_DATA_BASE = "naviburgerDB";  // NOMBRE
-const VERSION_BASE_DATOS = 2;           // VERSION
+const VERSION_BASE_DATOS = 3;           // VERSION
 
 function obtenerFechaActual() {
 
@@ -60,6 +60,15 @@ function abrirBaseDatos() {
             if (evento.oldVersion < 2) {
                 naviburgerDB.createObjectStore("historial", {
                     keyPath: "fecha"
+                });
+            }
+
+            // Version 3
+            if (evento.oldVersion < 3) {
+                naviburgerDB.deleteObjectStore("historial");
+
+                naviburgerDB.createObjectStore("historial", {
+                    keyPath: "id"
                 });
             }
 
@@ -252,6 +261,7 @@ function cerrarDia(fecha) {
     const resumen = calcularResumenDelDia();
 
     const dia = {
+        id: crypto.randomUUID(),
         fecha: fecha,
         pedidos: resumen.pedidos,
         productosVendidos: resumen.productosVendidos,
