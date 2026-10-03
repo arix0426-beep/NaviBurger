@@ -338,6 +338,8 @@ subpestanasVentas.forEach((boton) => {
 
 });
 
+cambiarSubpestanaVentas("Hoy");
+
 botonNuevoDia.addEventListener("click", () => {
 
     const confirmar = confirm(
