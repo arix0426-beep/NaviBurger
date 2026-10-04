@@ -4,9 +4,9 @@ Aplicación web para gestionar los pedidos y ventas de **Naviburger**.
 
 ## 📌 Versión actual
 
-**v0.3.2**
+**v0.4**
 
-Esta versión incorpora persistencia de datos mediante **IndexedDB**, permitiendo conservar los pedidos, almacenar y acceder a el historial de los días de operación.
+Esta versión agrega estilos y diseño a las secciones generales de la página.
 
 ## ✨ Funciones
 
@@ -53,7 +53,7 @@ Naviburger/
 * **v0.3.1** — Historial en la interfaz.
 * **v0.3.2** — Correción del manejo de fechas y prevención de reemplazos accidentales.
 * **v0.3.3** — Corrección de fechas.
-* **v0.4+** — Estilización y mejoras visuales.
+* **v0.4+** — Estilización y mejoras visuales generales.
 
 ## 🧪 Snapshots
 
@@ -61,7 +61,7 @@ Naviburger/
 * **Snapshot-2** — Pruebas del cierre de día mediante la interfaz.
 * **Snapshot-3** — Pruebas para la corrección de fechas
 
-## ⚠️ Nota
+## ⚠️ Notas
 
 Actualmente, guardar nuevamente un registro utilizando una fecha que ya existe puede reemplazar el registro anterior. Este comportamiento está previsto para ser corregido en **v0.3.2**.
 **Arreglado**
