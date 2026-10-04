@@ -223,6 +223,18 @@ function cambiarPestana(nombrePestana) {
     const pestanaSeleccionada = document.querySelector(`#${nombrePestana}`);
 
     pestanaSeleccionada.classList.add("activa");
+
+    const botonesPestana = document.querySelectorAll(".boton-pestana");
+
+    botonesPestana.forEach((boton) => {
+        boton.classList.remove("activa");
+    });
+
+    const botonActivo = document.querySelector(
+        `[data-pestana="${nombrePestana}"]`
+    );
+
+    botonActivo.classList.add("activa");
 }
 
 function cambiarSubpestanaVentas(pestana) {

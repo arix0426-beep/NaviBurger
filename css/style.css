@@ -5,3 +5,70 @@
 .pestana.activa {
     display: block;
 }
+
+
+/* ----------------------------*/
+/* ----------------------------*/
+/* ----------------------------*/
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background-color: #FFF8E7;
+    color: #3A2415;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+body > img {
+    display: block;
+    margin: 12px auto 0;
+}
+
+.encabezado {
+    background-color: #FF8400;
+    padding-top: 12px;
+}
+
+nav {
+    padding: 10px;
+    display: flex;
+    gap: 8px;
+}
+
+nav button {
+    flex: 1;
+    border: none;
+    background-color: transparent;
+    color: #3A2415;
+    padding: 10px 12px;
+    font-size: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+nav button.activa {
+    background-color: #FFDE7A;
+    color: #3A2415;
+}
+
+nav button:hover {
+    background-color: #ffc928;
+}
+
+nav button:active {
+    background-color: #D96600;
+    color: #FFFFFF;
+}
+
+#nuevo-dia {
+    background-color: #D94A2B;
+    color: #FFFFFF;
+}
+
+#nuevo-dia:hover {
+    background-color: #B93820;
+}
