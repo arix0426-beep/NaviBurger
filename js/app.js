@@ -139,6 +139,7 @@ function actualizarPedido() {
     listaPedido.innerHTML = "";
 
     let total = 0;
+    let cantidadArticulos = 0;
     let hayProductos = false;
 
     productos.forEach((producto) => {
@@ -146,6 +147,8 @@ function actualizarPedido() {
         if (producto.cantidad > 0) {
 
             hayProductos = true;
+
+            cantidadArticulos += producto.cantidad;
 
             const subtotal = producto.precio * producto.cantidad;
 
@@ -166,6 +169,8 @@ function actualizarPedido() {
     }
 
     totalElemento.textContent = total;
+
+    document.getElementById("cantidad-articulos").textContent = cantidadArticulos;
 }
 
 // ==============================
