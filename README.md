@@ -72,8 +72,8 @@ Naviburger/
 
 ## ⚠️ Notas
 
-- **HAY PROBLEMAS EN LANZAR LA V0.5. No se asigna Runner y el estado del trabajo permanece atascado.**
-- Los datos se almacenan localmente en el navegador. No se sincronizan automáticamente entre dispositivos o navegadores.
-- Se recomienda realizar pruebas antes de utilizar la aplicación para gestionar ventas reales.
-- Las correcciones relacionadas con el manejo de fechas se documentaron en las versiones v0.3.2 y v0.3.3.
+- Durante la publicación de la versión **v0.5**, GitHub Pages presentó una demora inusual en el proceso de despliegue. El workflow `pages-build-deployment` permaneció en estado `Queued` durante varios días, incluso después de varios intentos de reejecución (`Re-run`).
+- Finalmente, el workflow volvió a ejecutarse sin que fuera necesario modificar el código de la aplicación para solucionar el bloqueo.
+- La causa exacta de la demora no pudo determinarse; por lo tanto, se considera un incidente temporal del proceso de publicación, no un error confirmado del código de NaviBurger.
+- En caso de que vuelva a ocurrir, se recomienda revisar el estado de GitHub Actions y los registros del workflow antes de modificar el código o la configuración del proyecto.
 
