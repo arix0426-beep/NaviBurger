@@ -72,6 +72,7 @@ Naviburger/
 
 ## ⚠️ Notas
 
+- **HAY PROBLEMAS EN LANZAR LA V0.5. No se asigna Runner y el estado del trabajo permanece atascado.**
 - Los datos se almacenan localmente en el navegador. No se sincronizan automáticamente entre dispositivos o navegadores.
 - Se recomienda realizar pruebas antes de utilizar la aplicación para gestionar ventas reales.
 - Las correcciones relacionadas con el manejo de fechas se documentaron en las versiones v0.3.2 y v0.3.3.
