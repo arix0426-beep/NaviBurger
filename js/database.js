@@ -341,6 +341,7 @@ function terminarYTrasladarPedido(idPedido) {
 }
 
 
+
 function registrarPagoPedido(idPedido, recibido) {
     return new Promise((resolve, reject) => {
         if (!naviburgerDB) {
@@ -354,33 +355,29 @@ function registrarPagoPedido(idPedido, recibido) {
         }
 
         const transaccion = naviburgerDB.transaction(
-            ["pedidos"],
+            ["pedidos", "pedidosTerminados"],
             "readwrite"
         );
 
-        const almacen = transaccion.objectStore("pedidos");
+        const activos = transaccion.objectStore("pedidos");
+        const terminados = transaccion.objectStore("pedidosTerminados");
 
         let pedidoActualizado = null;
         let errorOperacion = null;
 
-        const solicitud = almacen.get(idPedido);
+        function cancelarOperacion(mensaje) {
+            errorOperacion = new Error(mensaje);
+            transaccion.abort();
+        }
 
-        solicitud.onsuccess = () => {
-            const pedido = solicitud.result;
-
+        function procesarPedido(pedido, almacen) {
             if (!pedido) {
-                errorOperacion = new Error(
-                    "No se encontró el pedido activo."
-                );
-                transaccion.abort();
+                cancelarOperacion("No se encontró el pedido.");
                 return;
             }
 
             if (pedido.estadoPago === "pagado") {
-                errorOperacion = new Error(
-                    "Este pedido ya está pagado."
-                );
-                transaccion.abort();
+                cancelarOperacion("Este pedido ya está pagado.");
                 return;
             }
 
@@ -393,10 +390,9 @@ function registrarPagoPedido(idPedido, recibido) {
             ) / 100;
 
             if (recibido < total) {
-                errorOperacion = new Error(
-                    `Pago insuficiente. El total es $${total}.`
+                cancelarOperacion(
+                    `Pago insuficiente. El total es $${total.toFixed(2)}.`
                 );
-                transaccion.abort();
                 return;
             }
 
@@ -414,11 +410,38 @@ function registrarPagoPedido(idPedido, recibido) {
                 }
             };
 
-            almacen.put(pedidoActualizado);
+            const solicitudGuardar = almacen.put(pedidoActualizado);
+
+            solicitudGuardar.onerror = () => {
+                errorOperacion =
+                    solicitudGuardar.error ||
+                    new Error("No se pudo guardar el pago.");
+                transaccion.abort();
+            };
+        }
+
+        const solicitudActivo = activos.get(idPedido);
+
+        solicitudActivo.onsuccess = () => {
+            if (solicitudActivo.result) {
+                procesarPedido(solicitudActivo.result, activos);
+                return;
+            }
+
+            const solicitudTerminado = terminados.get(idPedido);
+
+            solicitudTerminado.onsuccess = () => {
+                procesarPedido(solicitudTerminado.result, terminados);
+            };
+
+            solicitudTerminado.onerror = () => {
+                errorOperacion = solicitudTerminado.error;
+                transaccion.abort();
+            };
         };
 
-        solicitud.onerror = () => {
-            errorOperacion = solicitud.error;
+        solicitudActivo.onerror = () => {
+            errorOperacion = solicitudActivo.error;
             transaccion.abort();
         };
 
@@ -426,23 +449,16 @@ function registrarPagoPedido(idPedido, recibido) {
             resolve(pedidoActualizado);
         };
 
-        transaccion.onerror = () => {
+        transaccion.onabort = () => {
             reject(
                 errorOperacion ||
                 transaccion.error ||
                 new Error("No se pudo registrar el pago.")
             );
         };
-
-        transaccion.onabort = () => {
-            reject(
-                errorOperacion ||
-                transaccion.error ||
-                new Error("El pago fue cancelado por la base de datos.")
-            );
-        };
     });
 }
+
 
 
 // -----------------------

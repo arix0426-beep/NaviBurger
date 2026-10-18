@@ -370,6 +370,7 @@ function renderizarHistorial() {
 }
 
 
+
 async function renderizarPedidosTerminados() {
     vistaPedidosTerminados.innerHTML = "";
 
@@ -382,7 +383,6 @@ async function renderizarPedidosTerminados() {
             return;
         }
 
-        // Mostrar primero los pedidos terminados más recientemente.
         pedidosTerminados.sort((a, b) => {
             const fechaA = a.fechaTerminacion || "";
             const fechaB = b.fechaTerminacion || "";
@@ -397,6 +397,7 @@ async function renderizarPedidosTerminados() {
         pedidosTerminados.forEach((pedido) => {
             const tarjeta = document.createElement("div");
             tarjeta.classList.add("pedido", "pedido-terminado");
+            tarjeta.dataset.pedidoId = pedido.id;
 
             const titulo = document.createElement("h3");
             titulo.textContent = `Pedido #${pedido.numero}`;
@@ -418,15 +419,26 @@ async function renderizarPedidosTerminados() {
 
                 const detalle = document.createElement("p");
                 detalle.textContent =
-                    `${producto.cantidad}x ${producto.nombre} - $${subtotal}`;
+                    `${producto.cantidad}x ${producto.nombre} - $${subtotal.toFixed(2)}`;
 
                 listaProductos.appendChild(detalle);
             });
 
+            total = Math.round(total * 100) / 100;
+
             const totalElemento = document.createElement("p");
-            totalElemento.textContent = `Total: $${total}`;
+            totalElemento.textContent = `Total: $${total.toFixed(2)}`;
 
             const estadoPago = document.createElement("p");
+
+            tarjeta.append(
+                titulo,
+                fechaCreacion,
+                fechaTerminacion,
+                listaProductos,
+                totalElemento,
+                estadoPago
+            );
 
             if (pedido.estadoPago === "pagado") {
                 estadoPago.textContent = "Pago: Pagado";
@@ -445,28 +457,18 @@ async function renderizarPedidosTerminados() {
                 fechaPago.textContent =
                     `Fecha de pago: ${pago.fecha || "No registrada"}`;
 
-                tarjeta.append(
-                    titulo,
-                    fechaCreacion,
-                    fechaTerminacion,
-                    listaProductos,
-                    totalElemento,
-                    estadoPago,
-                    recibido,
-                    cambio,
-                    fechaPago
-                );
+                tarjeta.append(recibido, cambio, fechaPago);
             } else {
                 estadoPago.textContent = "Pago: Por cobrar";
 
-                tarjeta.append(
-                    titulo,
-                    fechaCreacion,
-                    fechaTerminacion,
-                    listaProductos,
-                    totalElemento,
-                    estadoPago
-                );
+                const botonPagar = document.createElement("button");
+                botonPagar.textContent = "Pagar";
+
+                botonPagar.addEventListener("click", () => {
+                    pagarPedido(pedido.id, true);
+                });
+
+                tarjeta.appendChild(botonPagar);
             }
 
             vistaPedidosTerminados.appendChild(tarjeta);
@@ -481,6 +483,7 @@ async function renderizarPedidosTerminados() {
             "No se pudo cargar el historial de pedidos terminados.";
     }
 }
+
 
 
 botonesPestana.forEach((boton) => {
@@ -711,8 +714,17 @@ async function terminarPedido(idPedido) {
     }
 }
 
-async function pagarPedido(idPedido) {
-    const pedido = pedidos.find(p => p.id === idPedido);
+
+async function pagarPedido(idPedido, esTerminado = false) {
+    const pedidoActivo = pedidos.find(p => p.id === idPedido);
+    let pedido = pedidoActivo;
+    let tarjetaSelector = ".tarjeta-pedido";
+
+    if (esTerminado) {
+        const pedidosTerminados = await obtenerPedidosTerminados();
+        pedido = pedidosTerminados.find(p => p.id === idPedido);
+        tarjetaSelector = ".pedido-terminado";
+    }
 
     if (!pedido) {
         alert("No se encontró el pedido.");
@@ -733,7 +745,7 @@ async function pagarPedido(idPedido) {
     ) / 100;
 
     const tarjeta = document.querySelector(
-        `.tarjeta-pedido[data-pedido-id="${CSS.escape(String(idPedido))}"]`
+        `${tarjetaSelector}[data-pedido-id="${CSS.escape(String(idPedido))}"]`
     );
 
     if (!tarjeta) {
@@ -741,6 +753,7 @@ async function pagarPedido(idPedido) {
         alert("No se pudo abrir el formulario de cobro.");
         return;
     }
+
     if (tarjeta.querySelector(".formulario-cobro")) {
         return;
     }
@@ -765,6 +778,7 @@ async function pagarPedido(idPedido) {
     const confirmar = document.createElement("button");
     confirmar.type = "submit";
     confirmar.textContent = "Confirmar pago";
+    confirmar.disabled = true;
 
     const cancelar = document.createElement("button");
     cancelar.type = "button";
@@ -783,8 +797,6 @@ async function pagarPedido(idPedido) {
 
         confirmar.disabled = !valido;
     });
-
-    confirmar.disabled = true;
 
     formulario.append(etiqueta, campo, cambioTexto, confirmar, cancelar);
     tarjeta.appendChild(formulario);
@@ -820,9 +832,14 @@ async function pagarPedido(idPedido) {
             }
 
             formulario.remove();
+
             renderizarPedidos();
             actualizarPedido();
             actualizarVentas();
+
+            if (esTerminado) {
+                await renderizarPedidosTerminados();
+            }
         } catch (error) {
             console.error("Error al registrar el pago:", error);
             alert(error.message || "No se pudo registrar el pago.");
@@ -832,6 +849,7 @@ async function pagarPedido(idPedido) {
         }
     });
 }
+
 
 
 // ======================
@@ -870,5 +888,3 @@ async function actualizarVentas() {
         console.error("Error al actualizar las ventas:", error);
     }
 }
-
-
