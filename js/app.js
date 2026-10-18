@@ -92,25 +92,49 @@ const productos = [
 
 const pedidos = [];
 
-abrirBaseDatos()
-    .then(() => {
-        return obtenerPedidos();
-    })
-    .then((pedidosGuardados) => {
 
+
+abrirBaseDatos()
+    .then(async () => {
+        const [pedidosGuardados, terminadosGuardados] =
+            await Promise.all([
+                obtenerPedidos(),
+                obtenerPedidosTerminados()
+            ]);
+
+        pedidos.length = 0;
         pedidos.push(...pedidosGuardados);
 
-        siguienteNumeroPedido = Math.max(
-            ...pedidos.map((pedido) => pedido.numero), 
-            0
-        ) + 1;
-
-        obtenerHistorial();
+        // Evitar reutilizar números de pedido de hoy.
+        siguienteNumeroPedido =
+            await obtenerSiguienteNumeroPedido();
 
         renderizarPedidos();
+        actualizarPedido();
         actualizarVentas();
         renderizarHistorial();
+        renderizarPedidosTerminados();
+
+        console.log(
+            "Naviburger inicializado correctamente.",
+            {
+                pedidosActivos: pedidosGuardados.length,
+                pedidosTerminados: terminadosGuardados.length
+            }
+        );
+    })
+    .catch((error) => {
+        console.error(
+            "No se pudo inicializar Naviburger:",
+            error
+        );
+
+        alert(
+            "No se pudieron cargar los datos de Naviburger. " +
+            "Revisa la consola para conocer el error."
+        );
     });
+
 
 let siguienteNumeroPedido = 1;
 
@@ -218,6 +242,9 @@ const vistaVentasHoy = document.getElementById("ventas-hoy");
 const vistaVentasHistorial = document.getElementById(
     "ventas-historial"
 );
+const vistaPedidosTerminados = document.querySelector(
+    "#ventas-pedidos-terminados"
+);
 
 function cambiarPestana(nombrePestana) {
 
@@ -242,19 +269,28 @@ function cambiarPestana(nombrePestana) {
     botonActivo.classList.add("activa");
 }
 
+
 function cambiarSubpestanaVentas(pestana) {
+    vistaVentasHoy.style.display = "none";
+    vistaVentasHistorial.style.display = "none";
+    vistaPedidosTerminados.style.display = "none";
 
     if (pestana === "Hoy") {
         vistaVentasHoy.style.display = "block";
-        vistaVentasHistorial.style.display = "none";
+        actualizarVentas();
     }
 
     if (pestana === "Historial") {
-        vistaVentasHoy.style.display = "none";
         vistaVentasHistorial.style.display = "block";
+        renderizarHistorial();
     }
 
+    if (pestana === "Pedidos") {
+        vistaPedidosTerminados.style.display = "block";
+        renderizarPedidosTerminados();
+    }
 }
+
 
 function renderizarHistorial() {
 
@@ -331,6 +367,120 @@ function renderizarHistorial() {
 
 }
 
+
+async function renderizarPedidosTerminados() {
+    vistaPedidosTerminados.innerHTML = "";
+
+    try {
+        const pedidosTerminados = await obtenerPedidosTerminados();
+
+        if (pedidosTerminados.length === 0) {
+            vistaPedidosTerminados.textContent =
+                "Todavía no hay pedidos terminados.";
+            return;
+        }
+
+        // Mostrar primero los pedidos terminados más recientemente.
+        pedidosTerminados.sort((a, b) => {
+            const fechaA = a.fechaTerminacion || "";
+            const fechaB = b.fechaTerminacion || "";
+
+            if (fechaA !== fechaB) {
+                return fechaB.localeCompare(fechaA);
+            }
+
+            return (b.numero || 0) - (a.numero || 0);
+        });
+
+        pedidosTerminados.forEach((pedido) => {
+            const tarjeta = document.createElement("div");
+            tarjeta.classList.add("pedido", "pedido-terminado");
+
+            const titulo = document.createElement("h3");
+            titulo.textContent = `Pedido #${pedido.numero}`;
+
+            const fechaCreacion = document.createElement("p");
+            fechaCreacion.textContent =
+                `Creado: ${pedido.fechaCreacion || "No registrada"}`;
+
+            const fechaTerminacion = document.createElement("p");
+            fechaTerminacion.textContent =
+                `Terminado: ${pedido.fechaTerminacion || "No registrada"}`;
+
+            const listaProductos = document.createElement("div");
+            let total = 0;
+
+            (pedido.productos || []).forEach((producto) => {
+                const subtotal = producto.precio * producto.cantidad;
+                total += subtotal;
+
+                const detalle = document.createElement("p");
+                detalle.textContent =
+                    `${producto.cantidad}x ${producto.nombre} - $${subtotal}`;
+
+                listaProductos.appendChild(detalle);
+            });
+
+            const totalElemento = document.createElement("p");
+            totalElemento.textContent = `Total: $${total}`;
+
+            const estadoPago = document.createElement("p");
+
+            if (pedido.estadoPago === "pagado") {
+                estadoPago.textContent = "Pago: Pagado";
+
+                const pago = pedido.pago || {};
+
+                const recibido = document.createElement("p");
+                recibido.textContent =
+                    `Recibido: $${pago.recibido ?? "No registrado"}`;
+
+                const cambio = document.createElement("p");
+                cambio.textContent =
+                    `Cambio: $${pago.cambio ?? "No registrado"}`;
+
+                const fechaPago = document.createElement("p");
+                fechaPago.textContent =
+                    `Fecha de pago: ${pago.fecha || "No registrada"}`;
+
+                tarjeta.append(
+                    titulo,
+                    fechaCreacion,
+                    fechaTerminacion,
+                    listaProductos,
+                    totalElemento,
+                    estadoPago,
+                    recibido,
+                    cambio,
+                    fechaPago
+                );
+            } else {
+                estadoPago.textContent = "Pago: Por cobrar";
+
+                tarjeta.append(
+                    titulo,
+                    fechaCreacion,
+                    fechaTerminacion,
+                    listaProductos,
+                    totalElemento,
+                    estadoPago
+                );
+            }
+
+            vistaPedidosTerminados.appendChild(tarjeta);
+        });
+    } catch (error) {
+        console.error(
+            "Error al cargar los pedidos terminados:",
+            error
+        );
+
+        vistaPedidosTerminados.textContent =
+            "No se pudo cargar el historial de pedidos terminados.";
+    }
+}
+
+
 botonesPestana.forEach((boton) => {
 
     boton.addEventListener("click", () => {
@@ -376,8 +526,8 @@ cambiarPestana("nuevo-pedido");
 // ==============================
 // CREAR PEDIDO
 // ==============================
-function crearPedido() {
 
+async function crearPedido() {
     const productosSeleccionados = productos.filter(
         (producto) => producto.cantidad > 0
     );
@@ -387,146 +537,282 @@ function crearPedido() {
         return;
     }
 
-    const nuevoPedido = {
-        numero: siguienteNumeroPedido,
-        productos: productosSeleccionados.map((producto) => ({
-            nombre: producto.nombre,
-            precio: producto.precio,
-            cantidad: producto.cantidad
-        })),
-        estado: "pendiente"
-    };
+    crearPedidoBoton.disabled = true;
 
-    pedidos.push(nuevoPedido);
+    try {
+        const fechaCreacion = obtenerFechaActual();
+        const numero = await obtenerSiguienteNumeroPedido(fechaCreacion);
 
-    guardarPedido(nuevoPedido);
+        const nuevoPedido = {
+            id: crypto.randomUUID(),
+            numero,
+            fechaCreacion,
+            fechaTerminacion: null,
+            productos: productosSeleccionados.map((producto) => ({
+                nombre: producto.nombre,
+                precio: producto.precio,
+                cantidad: producto.cantidad
+            })),
+            estado: "pendiente",
+            estadoPago: "por_cobrar",
+            pago: null
+        };
 
-    siguienteNumeroPedido++;
+        await guardarPedido(nuevoPedido);
 
-    renderizarPedidos();
+        pedidos.push(nuevoPedido);
 
-    // Limpiar cantidades
-    productos.forEach((producto, indice) => {
-        producto.cantidad = 0;
+        siguienteNumeroPedido = numero + 1;
 
-        const cantidad = elementosProducto[indice].querySelector("span");
-        cantidad.textContent = "0";
-    });
+        productos.forEach((producto, indice) => {
+            producto.cantidad = 0;
 
-    // Actualizar la pantalla
-    actualizarPedido();
+            const cantidad =
+                elementosProducto[indice].querySelector("span");
 
+            cantidad.textContent = "0";
+        });
+
+        renderizarPedidos();
+        actualizarPedido();
+        actualizarVentas();
+    } catch (error) {
+        console.error("Error al crear el pedido:", error);
+        alert("No se pudo guardar el pedido. Inténtalo de nuevo.");
+    } finally {
+        crearPedidoBoton.disabled = false;
+    }
 }
+
 
 crearPedidoBoton.addEventListener("click", crearPedido);
 
 // ====================
 // RENDERIZAR PEDIDOS
 // ====================
-function renderizarPedidos() {
 
+function renderizarPedidos() {
     listaPedidosPendientes.innerHTML = "";
 
     const pedidosPendientes = pedidos.filter(
-        (pedido) => pedido.estado === "pendiente"
+        pedido => pedido.estado === "pendiente"
     );
 
     if (pedidosPendientes.length === 0) {
-        listaPedidosPendientes.innerHTML =
-            "<p>No hay pedidos pendientes.</p>";
-
+        listaPedidosPendientes.textContent =
+            "No hay pedidos pendientes.";
         return;
     }
 
-    pedidosPendientes.forEach((pedido) => {
+    pedidosPendientes.forEach(pedido => {
+        const tarjeta = document.createElement("div");
+        tarjeta.classList.add("pedido");
 
-        const elementoPedido = document.createElement("div");
+        const titulo = document.createElement("h3");
+        titulo.textContent = `Pedido #${pedido.numero}`;
 
-        elementoPedido.classList.add("pedido");
-
-        let contenido = `<h3>Pedido #${pedido.numero}</h3>`;
-
+        const detalles = document.createElement("div");
         let total = 0;
 
-        pedido.productos.forEach((producto) => {
-
+        pedido.productos.forEach(producto => {
             const subtotal = producto.precio * producto.cantidad;
-
             total += subtotal;
 
-            contenido += `
-                <p>
-                    ${producto.cantidad}x ${producto.nombre}
-                    - $${subtotal}
-                </p>
-            `;
+            const detalle = document.createElement("p");
+            detalle.textContent =
+                `${producto.cantidad}x ${producto.nombre} - $${subtotal.toFixed(2)}`;
+
+            detalles.appendChild(detalle);
         });
 
-        contenido += `<p><strong>Total: $${total}</strong></p>`;
+        const totalElemento = document.createElement("p");
+        totalElemento.textContent = `Total: $${total.toFixed(2)}`;
 
-        contenido += `
-            <button class="terminar-pedido">
-                Terminar pedido
-            </button>
-        `;
+        const estadoPago = document.createElement("p");
+        estadoPago.textContent =
+            pedido.estadoPago === "pagado"
+                ? "Pago: Pagado"
+                : "Pago: Por cobrar";
 
-        elementoPedido.innerHTML = contenido;
+        const botonPagar = document.createElement("button");
+        botonPagar.textContent =
+            pedido.estadoPago === "pagado" ? "Ya pagado" : "Pagar";
+        botonPagar.disabled = pedido.estadoPago === "pagado";
 
-        elementoPedido
-            .querySelector(".terminar-pedido")
-            .addEventListener("click", () => {
-                terminarPedido(pedido.numero);
-            });
+        botonPagar.addEventListener("click", () => {
+            pagarPedido(pedido.id);
+        });
 
-        listaPedidosPendientes.appendChild(elementoPedido);
+        const botonTerminar = document.createElement("button");
+        botonTerminar.textContent = "Terminar pedido";
+
+        botonTerminar.addEventListener("click", () => {
+            terminarPedido(pedido.id);
+        });
+
+        tarjeta.append(
+            titulo,
+            detalles,
+            totalElemento,
+            estadoPago,
+            botonPagar,
+            botonTerminar
+        );
+
+        listaPedidosPendientes.appendChild(tarjeta);
     });
 }
+
 
 // ==================
 // TERMINAR PEDIDO
 // ==================
-function terminarPedido(numeroPedido) {
 
-    const pedido = pedidos.find(
-        (pedido) => pedido.numero === numeroPedido
+async function terminarPedido(idPedido) {
+  const pedido = pedidos.find(
+    (pedido) => pedido.id === idPedido
+  );
+
+  if (!pedido) {
+    alert("No se encontró el pedido.");
+    return;
+  }
+
+  if (pedido.estado !== "pendiente") {
+    alert("Este pedido ya no está pendiente.");
+    return;
+  }
+
+  try {
+    const pedidoTerminado =
+      await terminarYTrasladarPedido(idPedido);
+
+    pedidos = pedidos.filter(
+      (pedido) => pedido.id !== idPedido
     );
 
-    if (pedido) {
-        pedido.estado = "terminado";
-        guardarPedido(pedido);
-        console.log("PEDIDOS ACTUALES:", pedidos);
+    renderizarPedidos();
+    actualizarPedido();
+    actualizarVentas();
+
+    // El historial individual se actualizará por separado.
+    console.log(
+      "Pedido terminado:",
+      pedidoTerminado
+    );
+  } catch (error) {
+    console.error("Error al terminar el pedido:", error);
+    alert(
+      "No se pudo terminar el pedido. No se confirmó ningún cambio."
+    );
+  }
+}
+
+
+async function pagarPedido(idPedido) {
+    const pedido = pedidos.find(p => p.id === idPedido);
+
+    if (!pedido) {
+        alert("No se encontró el pedido.");
+        return;
     }
 
-    renderizarPedidos();
-    actualizarVentas();
+    if (pedido.estadoPago === "pagado") {
+        alert("Este pedido ya está pagado.");
+        return;
+    }
+
+    const total = Math.round(
+        pedido.productos.reduce(
+            (suma, producto) =>
+                suma + producto.precio * producto.cantidad,
+            0
+        ) * 100
+    ) / 100;
+
+    const respuesta = prompt(
+        `Total del pedido #${pedido.numero}: $${total}\n` +
+        "¿Cuánto dinero recibió el negocio?"
+    );
+
+    if (respuesta === null || respuesta.trim() === "") {
+        return;
+    }
+
+    const recibido = Number(respuesta);
+
+    if (!Number.isFinite(recibido) || recibido < 0) {
+        alert("Introduce una cantidad válida.");
+        return;
+    }
+
+    try {
+        const pedidoActualizado = await registrarPagoPedido(
+            idPedido,
+            recibido
+        );
+
+        const indice = pedidos.findIndex(p => p.id === idPedido);
+
+        if (indice !== -1) {
+            pedidos[indice] = pedidoActualizado;
+        }
+
+        const cambio = pedidoActualizado.pago.cambio;
+
+        alert(
+            `¡Pago registrado!\n` +
+            `Total: $${total}\n` +
+            `Recibido: $${recibido.toFixed(2)}\n` +
+            `Cambio: $${cambio.toFixed(2)}\n\n` +
+            "El pedido sigue en preparación."
+        );
+
+        renderizarPedidos();
+        actualizarPedido();
+        actualizarVentas();
+    } catch (error) {
+        console.error("Error al registrar el pago:", error);
+        alert(error.message || "No se pudo registrar el pago.");
+    }
 }
+
 
 // ======================
 // ACTUALIZAR VENTAS
 // ======================
-function actualizarVentas() {
 
-    const pedidosTerminados = pedidos.filter(
-        (pedido) => pedido.estado === "terminado"
-    );
+async function actualizarVentas() {
+    try {
+        const fechaHoy = obtenerFechaActual();
 
-    let cantidadProductos = 0;
-    let totalVentas = 0;
+        const [activos, terminados] = await Promise.all([
+            obtenerPedidos(),
+            obtenerPedidosTerminados()
+        ]);
 
-    pedidosTerminados.forEach((pedido) => {
+        const pedidosPagadosHoy = [...activos, ...terminados].filter(
+            (pedido) =>
+                pedido.estadoPago === "pagado" &&
+                pedido.pago?.fecha === fechaHoy
+        );
 
-        pedido.productos.forEach((producto) => {
+        let cantidadProductos = 0;
+        let totalVentas = 0;
 
-            cantidadProductos += producto.cantidad;
-
-            totalVentas += producto.precio * producto.cantidad;
-
+        pedidosPagadosHoy.forEach((pedido) => {
+            pedido.productos.forEach((producto) => {
+                cantidadProductos += producto.cantidad;
+                totalVentas += producto.precio * producto.cantidad;
+            });
         });
 
-    });
-
-    ventasPedidos.textContent = pedidosTerminados.length;
-    ventasProductos.textContent = cantidadProductos;
-    ventasTotal.textContent = totalVentas;
+        ventasPedidos.textContent = pedidosPagadosHoy.length;
+        ventasProductos.textContent = cantidadProductos;
+        ventasTotal.textContent = totalVentas;
+    } catch (error) {
+        console.error("Error al actualizar las ventas:", error);
+    }
 }
+
 

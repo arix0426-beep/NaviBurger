@@ -1,5 +1,5 @@
 const NAVI_DATA_BASE = "naviburgerDB";  // NOMBRE
-const VERSION_BASE_DATOS = 3;           // VERSION
+const VERSION_BASE_DATOS = 4;           // VERSION
 
 function obtenerFechaActual() {
 
@@ -17,141 +17,512 @@ let naviburgerDB;  // Variable universal
 // ------------------------
 // FUNCIÓN 'abrirBaseDatos'
 // ------------------------
+
 function abrirBaseDatos() {
-
-    // Estructura
     return new Promise((resolve, reject) => {
+        const solicitud = indexedDB.open(
+            NAVI_DATA_BASE,
+            VERSION_BASE_DATOS
+        );
 
-        // Crear solicitud para abrir la base de datos
-        const solicitud = indexedDB.open(NAVI_DATA_BASE, VERSION_BASE_DATOS);
-    
-        // En caso de solicitud abierta correctamente
-        solicitud.onsuccess = () => {
-
-            naviburgerDB = solicitud.result;
-
-            console.log("NAVI_DATA_BASE abierta correctamente");
-            resolve(naviburgerDB);
-
-        };
-
-        // En caso de error al abrir la solicitud
-        solicitud.onerror = () => {
-
-            console.error("Error al abrir NAVI_DATA_BASE:", solicitud.error);
-
-            reject(solicitud.error);
-
-        };
-
-        // En caso de necesitar actualización
         solicitud.onupgradeneeded = (evento) => {
+            const db = evento.target.result;
+            const transaccion = evento.target.transaction;
+            const versionAnterior = evento.oldVersion;
 
-            naviburgerDB = evento.target.result;
-
-            // Version: 1
-            if (evento.oldVersion < 1) {
-                naviburgerDB.createObjectStore("pedidos", {
-                    keyPath: "numero"
-                });
-            }
-
-            // Version 2
-            if (evento.oldVersion < 2) {
-                naviburgerDB.createObjectStore("historial", {
-                    keyPath: "fecha"
-                });
-            }
-
-            // Version 3
-            if (evento.oldVersion < 3) {
-                naviburgerDB.deleteObjectStore("historial");
-
-                naviburgerDB.createObjectStore("historial", {
+            // Base de datos nueva: crear la estructura definitiva.
+            if (versionAnterior === 0) {
+                db.createObjectStore("pedidos", {
                     keyPath: "id"
                 });
+
+                db.createObjectStore("pedidosTerminados", {
+                    keyPath: "id"
+                });
+
+                db.createObjectStore("historial", {
+                    keyPath: "id"
+                });
+
+                return;
             }
 
+            // Migrar el historial antiguo sin descartar sus registros.
+            if (versionAnterior < 3) {
+                if (db.objectStoreNames.contains("historial")) {
+                    const historialAntiguo =
+                        transaccion.objectStore("historial");
+
+                    const lecturaHistorial = historialAntiguo.getAll();
+
+                    lecturaHistorial.onsuccess = () => {
+                        try {
+                            const registros = lecturaHistorial.result;
+
+                            db.deleteObjectStore("historial");
+
+                            const historialNuevo = db.createObjectStore(
+                                "historial",
+                                { keyPath: "id" }
+                            );
+
+                            const idsHistorial = new Set();
+
+                            for (const registro of registros) {
+                                let id = registro.id;
+
+                                if (!id || idsHistorial.has(id)) {
+                                    id = crypto.randomUUID();
+                                }
+
+                                idsHistorial.add(id);
+
+                                historialNuevo.add({
+                                    ...registro,
+                                    id
+                                });
+                            }
+                        } catch (error) {
+                            console.error(
+                                "Error al migrar el historial:",
+                                error
+                            );
+                            transaccion.abort();
+                        }
+                    };
+
+                    lecturaHistorial.onerror = () => {
+                        console.error(
+                            "No se pudo leer el historial antiguo:",
+                            lecturaHistorial.error
+                        );
+                        transaccion.abort();
+                    };
+                } else {
+                    db.createObjectStore("historial", {
+                        keyPath: "id"
+                    });
+                }
+            }
+
+            // Migrar pedidos a la estructura de la versión 4.
+            if (versionAnterior < 4) {
+                const almacenAntiguo =
+                    transaccion.objectStore("pedidos");
+
+                const lecturaPedidos = almacenAntiguo.getAll();
+
+                lecturaPedidos.onsuccess = () => {
+                    try {
+                        const registros = lecturaPedidos.result;
+
+                        db.deleteObjectStore("pedidos");
+
+                        const pedidosNuevos = db.createObjectStore(
+                            "pedidos",
+                            { keyPath: "id" }
+                        );
+
+                        const pedidosTerminadosNuevos =
+                            db.createObjectStore(
+                                "pedidosTerminados",
+                                { keyPath: "id" }
+                            );
+
+                        const idsPedidos = new Set();
+
+                        for (const registro of registros) {
+                            let id = registro.id;
+
+                            if (!id || idsPedidos.has(id)) {
+                                id = crypto.randomUUID();
+                            }
+
+                            idsPedidos.add(id);
+
+                            const pedido = {
+                                ...registro,
+                                id,
+                                fechaCreacion:
+                                    registro.fechaCreacion ||
+                                    obtenerFechaActual(),
+                                estadoPago:
+                                    registro.estadoPago || "por_cobrar",
+                                pago: registro.pago ?? null,
+                                fechaTerminacion:
+                                    registro.fechaTerminacion ??
+                                    (
+                                        registro.estado === "terminado"
+                                            ? obtenerFechaActual()
+                                            : null
+                                    )
+                            };
+
+                            if (pedido.estado === "terminado") {
+                                pedidosTerminadosNuevos.add(pedido);
+                            } else {
+                                pedidosNuevos.add(pedido);
+                            }
+                        }
+                    } catch (error) {
+                        console.error(
+                            "Error al migrar los pedidos:",
+                            error
+                        );
+                        transaccion.abort();
+                    }
+                };
+
+                lecturaPedidos.onerror = () => {
+                    console.error(
+                        "No se pudieron leer los pedidos antiguos:",
+                        lecturaPedidos.error
+                    );
+                    transaccion.abort();
+                };
+            }
+        };
+
+
+        solicitud.onsuccess = () => {
+            naviburgerDB = solicitud.result;
+
+            naviburgerDB.onversionchange = () => {
+                naviburgerDB.close();
+            };
+
+            console.log(
+                "NAVI_DATA_BASE abierta correctamente. Versión:",
+                naviburgerDB.version
+            );
+
+            resolve(naviburgerDB);
+        };
+
+        solicitud.onerror = () => {
+            console.error(
+                "Error al abrir NAVI_DATA_BASE:",
+                solicitud.error
+            );
+
+            reject(solicitud.error);
+        };
+
+        solicitud.onblocked = () => {
+            console.warn(
+                "La actualización está bloqueada por otra conexión abierta."
+            );
         };
     });
 }
 
+
+
+
 // -----------------------
 // FUNCIÓN 'guardarPedido'
 // -----------------------
+
 function guardarPedido(pedido) {
-    
-    // VARIABLES----------------------------------------------------------- //
+    return new Promise((resolve, reject) => {
+        if (!naviburgerDB) {
+            reject(new Error("La base de datos no está abierta."));
+            return;
+        }
 
-    const transaccion = naviburgerDB.transaction(["pedidos"], "readwrite");
+        const transaccion = naviburgerDB.transaction(
+            ["pedidos"],
+            "readwrite"
+        );
 
-    const almacen = transaccion.objectStore("pedidos");
+        const almacen = transaccion.objectStore("pedidos");
 
-    const solicitud = almacen.put(pedido);
+        almacen.put(pedido);
 
-    // -------------------------------------------------------------------- //
+        transaccion.oncomplete = () => {
+            console.log("Pedido guardado correctamente");
+            resolve(pedido);
+        };
 
-    // Sin problemas
-    solicitud.onsuccess = () => {
+        transaccion.onerror = () => {
+            console.error(
+                "Error al guardar el pedido:",
+                transaccion.error
+            );
+            reject(transaccion.error);
+        };
 
-        console.log("Pedido guardado correctamente");
-
-    }
-
-    // Error
-    solicitud.onerror = () => {
-
-        console.error("Error al guardar el pedido: ", solicitud.error);
-
-    }
+        transaccion.onabort = () => {
+            reject(
+                transaccion.error ??
+                new Error("Se canceló el guardado del pedido.")
+            );
+        };
+    });
 }
+
+
+function terminarYTrasladarPedido(idPedido) {
+    return new Promise((resolve, reject) => {
+        if (!naviburgerDB) {
+            reject(new Error("La base de datos no está abierta."));
+            return;
+        }
+
+        const transaccion = naviburgerDB.transaction(
+            ["pedidos", "pedidosTerminados"],
+            "readwrite"
+        );
+
+        const activos = transaccion.objectStore("pedidos");
+        const terminados = transaccion.objectStore("pedidosTerminados");
+
+        let pedidoActualizado = null;
+        let errorOperacion = null;
+
+        const solicitud = activos.get(idPedido);
+
+        solicitud.onsuccess = () => {
+            const pedido = solicitud.result;
+
+            if (!pedido) {
+                errorOperacion = new Error(
+                    "No se encontró el pedido activo."
+                );
+                transaccion.abort();
+                return;
+            }
+
+            if (pedido.estado === "terminado") {
+                errorOperacion = new Error(
+                    "Este pedido ya está terminado."
+                );
+                transaccion.abort();
+                return;
+            }
+
+            pedidoActualizado = {
+                ...pedido,
+                estado: "terminado",
+                fechaTerminacion: obtenerFechaActual()
+            };
+
+            // Ambas operaciones pertenecen a la misma transacción.
+            // Si alguna falla, IndexedDB revierte los cambios.
+            terminados.add(pedidoActualizado);
+            activos.delete(idPedido);
+        };
+
+        solicitud.onerror = () => {
+            errorOperacion = solicitud.error;
+            transaccion.abort();
+        };
+
+        transaccion.oncomplete = () => {
+            resolve(pedidoActualizado);
+        };
+
+        transaccion.onerror = () => {
+            reject(
+                errorOperacion ||
+                transaccion.error ||
+                new Error("No se pudo terminar el pedido.")
+            );
+        };
+
+        transaccion.onabort = () => {
+            reject(
+                errorOperacion ||
+                transaccion.error ||
+                new Error("La operación fue cancelada.")
+            );
+        };
+    });
+}
+
+
+function registrarPagoPedido(idPedido, recibido) {
+    return new Promise((resolve, reject) => {
+        if (!naviburgerDB) {
+            reject(new Error("La base de datos no está abierta."));
+            return;
+        }
+
+        if (!Number.isFinite(recibido) || recibido < 0) {
+            reject(new Error("La cantidad recibida no es válida."));
+            return;
+        }
+
+        const transaccion = naviburgerDB.transaction(
+            ["pedidos"],
+            "readwrite"
+        );
+
+        const almacen = transaccion.objectStore("pedidos");
+
+        let pedidoActualizado = null;
+        let errorOperacion = null;
+
+        const solicitud = almacen.get(idPedido);
+
+        solicitud.onsuccess = () => {
+            const pedido = solicitud.result;
+
+            if (!pedido) {
+                errorOperacion = new Error(
+                    "No se encontró el pedido activo."
+                );
+                transaccion.abort();
+                return;
+            }
+
+            if (pedido.estadoPago === "pagado") {
+                errorOperacion = new Error(
+                    "Este pedido ya está pagado."
+                );
+                transaccion.abort();
+                return;
+            }
+
+            const total = Math.round(
+                pedido.productos.reduce(
+                    (suma, producto) =>
+                        suma + producto.precio * producto.cantidad,
+                    0
+                ) * 100
+            ) / 100;
+
+            if (recibido < total) {
+                errorOperacion = new Error(
+                    `Pago insuficiente. El total es $${total}.`
+                );
+                transaccion.abort();
+                return;
+            }
+
+            const cambio = Math.round(
+                (recibido - total) * 100
+            ) / 100;
+
+            pedidoActualizado = {
+                ...pedido,
+                estadoPago: "pagado",
+                pago: {
+                    recibido,
+                    cambio,
+                    fecha: obtenerFechaActual()
+                }
+            };
+
+            almacen.put(pedidoActualizado);
+        };
+
+        solicitud.onerror = () => {
+            errorOperacion = solicitud.error;
+            transaccion.abort();
+        };
+
+        transaccion.oncomplete = () => {
+            resolve(pedidoActualizado);
+        };
+
+        transaccion.onerror = () => {
+            reject(
+                errorOperacion ||
+                transaccion.error ||
+                new Error("No se pudo registrar el pago.")
+            );
+        };
+
+        transaccion.onabort = () => {
+            reject(
+                errorOperacion ||
+                transaccion.error ||
+                new Error("El pago fue cancelado por la base de datos.")
+            );
+        };
+    });
+}
+
 
 // -----------------------
 // FUNCIÓN 'obtenerPedido'
 // -----------------------
 function obtenerPedidos() {
-
-    // Estructura
     return new Promise((resolve, reject) => {
+        if (!naviburgerDB) {
+            reject(new Error("La base de datos no está abierta."));
+            return;
+        }
 
-        // VARIABLES --------------------------------------------------------- //
+        const transaccion = naviburgerDB.transaction(
+            ["pedidos"],
+            "readonly"
+        );
 
-        const transaccion = naviburgerDB.transaction(["pedidos"], "readonly");
+        const solicitud = transaccion
+            .objectStore("pedidos")
+            .getAll();
 
-        const almacen = transaccion.objectStore("pedidos");
-
-        const solicitud = almacen.getAll();
-
-        // ------------------------------------------------------------------- //
-
-        // Sin problemas
         solicitud.onsuccess = () => {
-
-            console.log("Pedidos obtenidos: ", solicitud.result);
-
             resolve(solicitud.result);
+        };
 
-        }
-
-        // Error
         solicitud.onerror = () => {
-
-            console.log("Error al obtener los pedidos: ", solicitud.error);
-
             reject(solicitud.error);
-
-        }
-
+        };
     });
-
 }
+
+
+function obtenerPedidosTerminados() {
+    return new Promise((resolve, reject) => {
+        if (!naviburgerDB) {
+            reject(new Error("La base de datos no está abierta."));
+            return;
+        }
+        const transaccion = naviburgerDB.transaction(
+            ["pedidosTerminados"],
+            "readonly"
+        );
+
+        const solicitud = transaccion
+            .objectStore("pedidosTerminados")
+            .getAll();
+
+        solicitud.onsuccess = () => resolve(solicitud.result);
+        solicitud.onerror = () => reject(solicitud.error);
+    });
+}
+
+function obtenerSiguienteNumeroPedido(fecha = obtenerFechaActual()) {
+    return Promise.all([
+        obtenerPedidos(),
+        obtenerPedidosTerminados()
+    ]).then(([activos, terminados]) => {
+        const pedidosDelDia = [...activos, ...terminados].filter(
+            (pedido) =>
+                pedido.fechaCreacion === fecha
+        );
+
+        return Math.max(
+            0,
+            ...pedidosDelDia.map((pedido) => pedido.numero)
+        ) + 1;
+    });
+}
+
 
 // --------------------------
 // FUNCIÓN 'guardarHistorial'
 // --------------------------
-function guardarHistorial(dia) {
 
+function guardarHistorial(dia) {
     return new Promise((resolve, reject) => {
+        if (!naviburgerDB) {
+            reject(new Error("La base de datos no está abierta."));
+            return;
+        }
 
         const transaccion = naviburgerDB.transaction(
             ["historial"],
@@ -159,29 +530,62 @@ function guardarHistorial(dia) {
         );
 
         const almacen = transaccion.objectStore("historial");
+        let errorOperacion = null;
 
-        const solicitud = almacen.put(dia);
+        const solicitud = almacen.getAll();
 
         solicitud.onsuccess = () => {
-            console.log("Historial guardado correctamente");
-            resolve();
+            const yaExiste = solicitud.result.some(
+                registro => registro.fecha === dia.fecha
+            );
+
+            if (yaExiste) {
+                errorOperacion = new Error(
+                    `Ya existe un cierre diario para ${dia.fecha}.`
+                );
+                transaccion.abort();
+                return;
+            }
+
+            almacen.add(dia);
         };
 
         solicitud.onerror = () => {
-            console.error(
-                "Error al guardar el historial:",
-                solicitud.error
-            );
-
-            reject(solicitud.error);
+            errorOperacion = solicitud.error;
+            transaccion.abort();
         };
 
+        transaccion.oncomplete = () => {
+            resolve(dia);
+        };
+
+        transaccion.onerror = () => {
+            reject(
+                errorOperacion ||
+                transaccion.error ||
+                new Error("No se pudo guardar el cierre diario.")
+            );
+        };
+
+        transaccion.onabort = () => {
+            reject(
+                errorOperacion ||
+                transaccion.error ||
+                new Error("Se canceló el cierre diario.")
+            );
+        };
     });
 }
+
 
 function obtenerHistorial() {
 
     return new Promise((resolve, reject) => {
+
+        if (!naviburgerDB) {
+            reject(new Error("La base de datos no está abierta."));
+            return;
+        }
 
         const transaccion = naviburgerDB.transaction(
             ["historial"],
@@ -213,78 +617,81 @@ function obtenerHistorial() {
     });
 }
 
-function calcularResumenDelDia() {
 
-    const pedidosTerminados = pedidos.filter(
-        (pedido) => pedido.estado === "terminado"
+async function calcularResumenDelDia(fecha = obtenerFechaActual()) {
+    const [activos, terminados] = await Promise.all([
+        obtenerPedidos(),
+        obtenerPedidosTerminados()
+    ]);
+
+    const pedidosPagados = [...activos, ...terminados].filter(
+        (pedido) =>
+            pedido.estadoPago === "pagado" &&
+            pedido.pago?.fecha === fecha
     );
 
     const productosVendidos = {};
     let ganancias = 0;
 
-    pedidosTerminados.forEach((pedido) => {
-
+    pedidosPagados.forEach((pedido) => {
         pedido.productos.forEach((producto) => {
-
             const subtotal = producto.precio * producto.cantidad;
 
             ganancias += subtotal;
 
-            if (productosVendidos[producto.nombre]) {
-                productosVendidos[producto.nombre] += producto.cantidad;
-            } else {
-                productosVendidos[producto.nombre] = producto.cantidad;
-            }
-
+            productosVendidos[producto.nombre] =
+                (productosVendidos[producto.nombre] || 0) +
+                producto.cantidad;
         });
-
     });
 
     return {
-        pedidos: pedidosTerminados,
-        productosVendidos: productosVendidos,
-        ganancias: ganancias
+        pedidos: pedidosPagados,
+        productosVendidos,
+        ganancias
     };
 }
 
-function cerrarDia(fecha) {
 
-    const pedidosPendientes = pedidos.some(
-        (pedido) => pedido.estado === "pendiente"
+async function cerrarDia(fecha = obtenerFechaActual()) {
+    const confirmar = confirm(
+        `¿Quieres cerrar el día ${fecha}?\n\n` +
+        "Se guardará el resumen de los pedidos cobrados. " +
+        "Los pedidos pendientes y terminados se conservarán."
     );
 
-    if (pedidosPendientes) {
-        alert("No puedes cerrar el día mientras haya pedidos pendientes.");
+    if (!confirmar) {
         return;
     }
 
-    const resumen = calcularResumenDelDia();
+    try {
+        const resumen = await calcularResumenDelDia(fecha);
 
-    const dia = {
-        id: crypto.randomUUID(),
-        fecha: fecha,
-        pedidos: resumen.pedidos,
-        productosVendidos: resumen.productosVendidos,
-        ganancias: resumen.ganancias
-    };
+        const dia = {
+            id: crypto.randomUUID(),
+            fecha,
+            pedidos: resumen.pedidos,
+            productosVendidos: resumen.productosVendidos,
+            ganancias: resumen.ganancias
+        };
 
-    guardarHistorial(dia)
-        .then(() => {
-            return borrarTodosLosPedidos();
-        })
-        .then(() => {
-            pedidos.length = 0;
-            siguienteNumeroPedido = 1;
+        await guardarHistorial(dia);
 
-            renderizarPedidos();
-            actualizarVentas();
+        alert(`Cierre diario de ${fecha} guardado correctamente.`);
 
-            console.log("Día cerrado correctamente");
-        })
-        .catch((error) => {
-            console.error("Error al cerrar el día:", error);
-        });
+        renderizarHistorial();
+        actualizarVentas();
+    } catch (error) {
+        console.error("Error al cerrar el día:", error);
+
+        alert(
+            error.message ||
+            "No se pudo guardar el cierre diario."
+        );
+    }
 }
+
+
 
 function borrarTodosLosPedidos() {
 
@@ -315,4 +722,3 @@ function borrarTodosLosPedidos() {
 
     });
 }
-
