@@ -369,8 +369,6 @@ function renderizarHistorial() {
 
 }
 
-
-
 async function renderizarPedidosTerminados() {
     vistaPedidosTerminados.innerHTML = "";
 
