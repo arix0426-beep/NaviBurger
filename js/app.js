@@ -109,6 +109,8 @@ abrirBaseDatos()
         siguienteNumeroPedido =
             await obtenerSiguienteNumeroPedido();
 
+        cambiarSubpestanaVentas("Hoy");
+
         renderizarPedidos();
         actualizarPedido();
         actualizarVentas();
@@ -505,8 +507,6 @@ subpestanasVentas.forEach((boton) => {
 
 });
 
-cambiarSubpestanaVentas("Hoy");
-
 botonNuevoDia.addEventListener("click", () => {
 
     const confirmar = confirm(
@@ -608,6 +608,9 @@ function renderizarPedidos() {
         const tarjeta = document.createElement("div");
         tarjeta.classList.add("pedido");
 
+        tarjeta.classList.add("tarjeta-pedido");
+        tarjeta.dataset.pedidoId = pedido.id;
+
         const titulo = document.createElement("h3");
         titulo.textContent = `Pedido #${pedido.numero}`;
 
@@ -667,47 +670,46 @@ function renderizarPedidos() {
 // ==================
 // TERMINAR PEDIDO
 // ==================
-
 async function terminarPedido(idPedido) {
-  const pedido = pedidos.find(
-    (pedido) => pedido.id === idPedido
-  );
+    const pedido = pedidos.find(p => p.id === idPedido);
 
-  if (!pedido) {
-    alert("No se encontró el pedido.");
-    return;
-  }
+    if (!pedido) {
+        alert("No se encontró el pedido.");
+        return;
+    }
 
-  if (pedido.estado !== "pendiente") {
-    alert("Este pedido ya no está pendiente.");
-    return;
-  }
+    if (pedido.estado === "terminado") {
+        alert("Este pedido ya está terminado.");
+        return;
+    }
 
-  try {
-    const pedidoTerminado =
-      await terminarYTrasladarPedido(idPedido);
+    try {
+        await terminarYTrasladarPedido(idPedido);
 
-    pedidos = pedidos.filter(
-      (pedido) => pedido.id !== idPedido
-    );
+        const indice = pedidos.findIndex(p => p.id === idPedido);
 
-    renderizarPedidos();
-    actualizarPedido();
-    actualizarVentas();
+        if (indice !== -1) {
+            pedidos.splice(indice, 1);
+        }
 
-    // El historial individual se actualizará por separado.
-    console.log(
-      "Pedido terminado:",
-      pedidoTerminado
-    );
-  } catch (error) {
-    console.error("Error al terminar el pedido:", error);
-    alert(
-      "No se pudo terminar el pedido. No se confirmó ningún cambio."
-    );
-  }
+        renderizarPedidos();
+        actualizarPedido();
+        actualizarVentas();
+
+        // Si la vista de pedidos terminados está disponible,
+        // actualiza su contenido.
+        if (typeof renderizarPedidosTerminados === "function") {
+            await renderizarPedidosTerminados();
+        }
+    } catch (error) {
+        console.error("Error al terminar el pedido:", error);
+        alert(
+            `No se pudo terminar el pedido: ${
+                error?.message || "Error desconocido"
+            }`
+        );
+    }
 }
-
 
 async function pagarPedido(idPedido) {
     const pedido = pedidos.find(p => p.id === idPedido);
@@ -730,51 +732,105 @@ async function pagarPedido(idPedido) {
         ) * 100
     ) / 100;
 
-    const respuesta = prompt(
-        `Total del pedido #${pedido.numero}: $${total}\n` +
-        "¿Cuánto dinero recibió el negocio?"
+    const tarjeta = document.querySelector(
+        `.tarjeta-pedido[data-pedido-id="${CSS.escape(String(idPedido))}"]`
     );
 
-    if (respuesta === null || respuesta.trim() === "") {
+    if (!tarjeta) {
+        console.error("No se encontró la tarjeta del pedido:", idPedido);
+        alert("No se pudo abrir el formulario de cobro.");
+        return;
+    }
+    if (tarjeta.querySelector(".formulario-cobro")) {
         return;
     }
 
-    const recibido = Number(respuesta);
+    const formulario = document.createElement("form");
+    formulario.className = "formulario-cobro";
 
-    if (!Number.isFinite(recibido) || recibido < 0) {
-        alert("Introduce una cantidad válida.");
-        return;
-    }
+    const etiqueta = document.createElement("label");
+    etiqueta.textContent = `Total: $${total.toFixed(2)}. Dinero recibido:`;
 
-    try {
-        const pedidoActualizado = await registrarPagoPedido(
-            idPedido,
-            recibido
-        );
+    const campo = document.createElement("input");
+    campo.type = "number";
+    campo.min = String(total);
+    campo.step = "0.01";
+    campo.required = true;
+    campo.placeholder = "Importe recibido";
+    campo.inputMode = "decimal";
 
-        const indice = pedidos.findIndex(p => p.id === idPedido);
+    const cambioTexto = document.createElement("p");
+    cambioTexto.textContent = "Cambio: $0.00";
 
-        if (indice !== -1) {
-            pedidos[indice] = pedidoActualizado;
+    const confirmar = document.createElement("button");
+    confirmar.type = "submit";
+    confirmar.textContent = "Confirmar pago";
+
+    const cancelar = document.createElement("button");
+    cancelar.type = "button";
+    cancelar.textContent = "Cancelar";
+    cancelar.addEventListener("click", () => formulario.remove());
+
+    campo.addEventListener("input", () => {
+        const recibido = Number(campo.value);
+        const valido = campo.value.trim() !== "" &&
+            Number.isFinite(recibido) &&
+            recibido >= total;
+
+        cambioTexto.textContent = valido
+            ? `Cambio: $${(recibido - total).toFixed(2)}`
+            : "El importe debe cubrir el total.";
+
+        confirmar.disabled = !valido;
+    });
+
+    confirmar.disabled = true;
+
+    formulario.append(etiqueta, campo, cambioTexto, confirmar, cancelar);
+    tarjeta.appendChild(formulario);
+    campo.focus();
+
+    formulario.addEventListener("submit", async (evento) => {
+        evento.preventDefault();
+
+        const recibido = Number(campo.value);
+
+        if (
+            campo.value.trim() === "" ||
+            !Number.isFinite(recibido) ||
+            recibido < total
+        ) {
+            alert("El importe recibido debe cubrir el total.");
+            return;
         }
 
-        const cambio = pedidoActualizado.pago.cambio;
+        confirmar.disabled = true;
+        campo.disabled = true;
 
-        alert(
-            `¡Pago registrado!\n` +
-            `Total: $${total}\n` +
-            `Recibido: $${recibido.toFixed(2)}\n` +
-            `Cambio: $${cambio.toFixed(2)}\n\n` +
-            "El pedido sigue en preparación."
-        );
+        try {
+            const pedidoActualizado = await registrarPagoPedido(
+                idPedido,
+                recibido
+            );
 
-        renderizarPedidos();
-        actualizarPedido();
-        actualizarVentas();
-    } catch (error) {
-        console.error("Error al registrar el pago:", error);
-        alert(error.message || "No se pudo registrar el pago.");
-    }
+            const indice = pedidos.findIndex(p => p.id === idPedido);
+
+            if (indice !== -1) {
+                pedidos[indice] = pedidoActualizado;
+            }
+
+            formulario.remove();
+            renderizarPedidos();
+            actualizarPedido();
+            actualizarVentas();
+        } catch (error) {
+            console.error("Error al registrar el pago:", error);
+            alert(error.message || "No se pudo registrar el pago.");
+            campo.disabled = false;
+            confirmar.disabled = false;
+            campo.focus();
+        }
+    });
 }
 
 
