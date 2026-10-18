@@ -291,6 +291,13 @@ function cambiarSubpestanaVentas(pestana) {
         vistaPedidosTerminados.style.display = "block";
         renderizarPedidosTerminados();
     }
+
+    document.querySelectorAll(".subpestanas-ventas button").forEach(boton => {
+    boton.classList.toggle(
+        "activa",
+        boton.dataset.ventas === pestana
+    );
+});
 }
 
 
@@ -425,9 +432,19 @@ async function renderizarPedidosTerminados() {
             total = Math.round(total * 100) / 100;
 
             const totalElemento = document.createElement("p");
+            totalElemento.classList.add("pedido-total");
             totalElemento.textContent = `Total: $${total.toFixed(2)}`;
 
             const estadoPago = document.createElement("p");
+            estadoPago.classList.add(
+                "pedido-estado-pago",
+                pedido.estadoPago === "pagado" ? "pagado" : "por-cobrar"
+            );
+
+            estadoPago.textContent =
+                pedido.estadoPago === "pagado"
+                    ? "Pago: Pagado"
+                    : "Pago: Por cobrar";
 
             tarjeta.append(
                 titulo,
@@ -630,9 +647,15 @@ function renderizarPedidos() {
         });
 
         const totalElemento = document.createElement("p");
+        totalElemento.classList.add("pedido-total");
         totalElemento.textContent = `Total: $${total.toFixed(2)}`;
 
         const estadoPago = document.createElement("p");
+        estadoPago.classList.add(
+            "pedido-estado-pago",
+            pedido.estadoPago === "pagado" ? "pagado" : "por-cobrar"
+        );
+
         estadoPago.textContent =
             pedido.estadoPago === "pagado"
                 ? "Pago: Pagado"

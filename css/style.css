@@ -1,15 +1,26 @@
-.pestana {
-    display: none;
+
+/* =========================================
+   NAVIBURGER v0.7.0 — IDENTIDAD VISUAL
+   ========================================= */
+
+:root {
+    --navi-orange: #FF8400;
+    --navi-orange-dark: #D96600;
+    --navi-orange-soft: #FFF0D8;
+    --navi-yellow: #FFDE7A;
+    --navi-yellow-light: #FFF4CE;
+    --navi-cream: #FFF8E7;
+    --navi-white: #FFFFFF;
+    --navi-brown: #3A2415;
+    --navi-brown-soft: #80664F;
+    --navi-border: #E8CDB0;
+    --navi-green: #276749;
+    --navi-green-bg: #E5F5E9;
+    --navi-red: #A93226;
+    --navi-red-bg: #FCE8E6;
+    --navi-shadow: 0 5px 18px rgba(58, 36, 21, 0.08);
+    --navi-radius: 16px;
 }
-
-.pestana.activa {
-    display: block;
-}
-
-
-/* ----------------------------*/
-/* ----------------------------*/
-/* ----------------------------*/
 
 * {
     box-sizing: border-box;
@@ -17,89 +28,146 @@
 
 body {
     margin: 0;
-    background-color: #FFF8E7;
-    color: #3A2415;
-    font-family: Arial, sans-serif;
-    text-align: center;
     padding-bottom: 150px;
+    background: var(--navi-cream);
+    color: var(--navi-brown);
+    font-family: Arial, sans-serif;
+    line-height: 1.5;
+    text-align: center;
 }
 
 body > img {
     display: block;
+    max-width: 100%;
+    height: auto;
     margin: 12px auto 0;
 }
 
+/* =========================================
+   NAVEGACIÓN PRINCIPAL
+   ========================================= */
+
 .encabezado {
-    background-color: #FF8400;
+    background: var(--navi-orange);
     padding-top: 12px;
+    box-shadow: 0 3px 12px rgba(58, 36, 21, 0.12);
 }
 
 nav {
-    padding: 10px;
     display: flex;
     gap: 8px;
+    padding: 10px;
 }
 
 nav button {
     flex: 1;
-    border: none;
-    background-color: transparent;
-    color: #3A2415;
-    padding: 10px 12px;
+    min-width: 0;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 11px 12px;
+    background: transparent;
+    color: var(--navi-brown);
     font-size: 14px;
-    border-radius: 8px;
+    font-weight: 700;
     cursor: pointer;
-}
-
-nav button.activa {
-    background-color: #FFDE7A;
-    color: #3A2415;
+    transition:
+        background-color 0.18s ease,
+        color 0.18s ease,
+        transform 0.18s ease;
 }
 
 nav button:hover {
-    background-color: #ffc928;
+    background: rgba(255, 222, 122, 0.65);
+}
+
+nav button.activa {
+    background: var(--navi-yellow);
+    color: var(--navi-brown);
+    box-shadow: 0 2px 5px rgba(58, 36, 21, 0.08);
 }
 
 nav button:active {
-    background-color: #D96600;
-    color: #FFFFFF;
+    transform: scale(0.98);
+}
+
+button:focus-visible,
+input:focus-visible {
+    outline: 3px solid #8C4800;
+    outline-offset: 3px;
 }
 
 #nuevo-dia {
-    background-color: #D94A2B;
-    color: #FFFFFF;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    background: #D94A2B;
+    color: var(--navi-white);
+    font-weight: 700;
+    cursor: pointer;
 }
 
 #nuevo-dia:hover {
-    background-color: #B93820;
+    background: #B93820;
 }
 
+/* =========================================
+   PESTAÑAS Y ENCABEZADOS
+   ========================================= */
 
-/* v0.5 — Tarjeta de producto */
+.pestana {
+    display: none;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 22px 18px;
+}
+
+.pestana.activa {
+    display: block;
+}
+
+.pestana > h2,
+#ventas-hoy > h2 {
+    margin: 4px 0 22px;
+    font-size: clamp(22px, 4vw, 30px);
+    line-height: 1.2;
+    text-align: left;
+}
+
+h3 {
+    line-height: 1.3;
+}
+
+/* =========================================
+   PRODUCTOS
+   ========================================= */
+
 .producto {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px;
-    margin: 10px;
-    background-color: #FFFFFF;
-    border: 1px solid #E8CDB0;
-    border-radius: 12px;
+    margin: 10px 0;
+    padding: 14px;
+    background: var(--navi-white);
+    border: 1px solid var(--navi-border);
+    border-radius: 14px;
+    box-shadow: 0 2px 7px rgba(58, 36, 21, 0.04);
     text-align: left;
 }
 
 .producto-imagen {
     width: 80px;
     height: 80px;
-    object-fit: contain;
     flex-shrink: 0;
+    object-fit: contain;
 }
 
 .producto-info {
     display: flex;
-    flex-direction: column;
     flex: 1;
+    flex-direction: column;
     gap: 4px;
+    min-width: 0;
 }
 
 .producto-controles {
@@ -112,30 +180,386 @@ nav button:active {
     width: 36px;
     height: 36px;
     border: none;
-    border-radius: 8px;
-    background-color: #FF8400;
-    color: #FFFFFF;
+    border-radius: 9px;
+    background: var(--navi-orange);
+    color: var(--navi-white);
     font-size: 20px;
+    font-weight: 700;
     cursor: pointer;
 }
 
+.producto-controles button:hover {
+    background: var(--navi-orange-dark);
+}
 
-/* RESUMEN FIJO DEL PEDIDO */
+/* =========================================
+   TICKETS DE PEDIDOS
+   ========================================= */
+
+#lista-pedidos-pendientes,
+#ventas-pedidos-terminados {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(min(100%, 300px), 1fr)
+    );
+    align-items: start;
+    gap: 18px;
+    text-align: left;
+}
+
+/* Tarjeta base compartida */
+
+.pedido {
+    position: relative;
+    min-width: 0;
+    overflow: hidden;
+    margin: 0;
+    padding: 0 18px 18px;
+    background: var(--navi-white);
+    border: 1px solid var(--navi-border);
+    border-radius: var(--navi-radius);
+    box-shadow: var(--navi-shadow);
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+
+/* Encabezado de ticket */
+
+.pedido.tarjeta-pedido::before,
+.pedido.pedido-terminado::before {
+    display: block;
+    margin: 0 -18px 15px;
+    padding: 12px 18px;
+    background: var(--navi-orange);
+    color: var(--navi-white);
+    content: "NAVIBURGER  •  TICKET DE PEDIDO";
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.1px;
+    text-align: left;
+}
+
+/* Número de pedido */
+
+.pedido h3 {
+    margin: 0 0 14px;
+    color: var(--navi-brown);
+    font-size: 23px;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+}
+
+/* Productos del ticket */
+
+.pedido > div:not(.formulario-cobro) {
+    margin: 0;
+}
+
+.pedido > div:not(.formulario-cobro) p {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0;
+    padding: 9px 0;
+    border-bottom: 1px dashed var(--navi-border);
+    color: var(--navi-brown);
+    font-size: 14px;
+    text-align: left;
+}
+
+.pedido > p {
+    margin: 10px 0;
+    font-size: 14px;
+    text-align: left;
+}
+
+/* Total del pedido */
+
+.pedido > p:has(+ p) {
+    color: var(--navi-brown);
+}
+
+.pedido > p:has(+ p) strong {
+    color: var(--navi-orange-dark);
+}
+
+/* Estados */
+
+.pedido > p:has(+ button),
+.pedido > p:has(+ .formulario-cobro) {
+    color: var(--navi-brown-soft);
+    font-weight: 700;
+}
+
+/* Fechas en pedidos terminados */
+
+.pedido-terminado > p:nth-of-type(1),
+.pedido-terminado > p:nth-of-type(2) {
+    color: var(--navi-brown-soft);
+    font-size: 12px;
+}
+
+/* =========================================
+   BOTONES DE PEDIDOS
+   ========================================= */
+
+.pedido > button {
+    width: 100%;
+    min-height: 44px;
+    margin-top: 9px;
+    padding: 11px 14px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: var(--navi-orange);
+    color: var(--navi-white);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        background-color 0.18s ease,
+        transform 0.18s ease;
+}
+
+.pedido > button:hover:not(:disabled) {
+    background: var(--navi-orange-dark);
+}
+
+.pedido > button:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.pedido > button:disabled {
+    background: var(--navi-green-bg);
+    color: var(--navi-green);
+    border-color: #B7DEC1;
+    cursor: default;
+    opacity: 1;
+}
+
+/* Terminar pedido: acción secundaria */
+
+.tarjeta-pedido > button:last-of-type {
+    background: var(--navi-white);
+    border-color: var(--navi-orange);
+    color: var(--navi-orange-dark);
+}
+
+.tarjeta-pedido > button:last-of-type:hover {
+    background: var(--navi-orange-soft);
+}
+
+/* =========================================
+   FORMULARIO DE COBRO
+   ========================================= */
+
+.formulario-cobro {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 18px;
+    padding: 16px;
+    background: var(--navi-yellow-light);
+    border: 1px solid var(--navi-yellow);
+    border-radius: 12px;
+    text-align: left;
+}
+
+.formulario-cobro label {
+    color: var(--navi-brown);
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.formulario-cobro input {
+    width: 100%;
+    min-height: 46px;
+    padding: 11px 12px;
+    border: 1px solid var(--navi-border);
+    border-radius: 9px;
+    background: var(--navi-white);
+    color: var(--navi-brown);
+    font: inherit;
+    font-size: 16px;
+}
+
+.formulario-cobro input:focus {
+    border-color: var(--navi-orange);
+}
+
+.formulario-cobro p {
+    margin: 0;
+    color: var(--navi-brown);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.formulario-cobro button {
+    min-height: 44px;
+    padding: 11px 14px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    background: var(--navi-orange);
+    color: var(--navi-white);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.formulario-cobro button[type="submit"]:hover:not(:disabled) {
+    background: var(--navi-orange-dark);
+}
+
+.formulario-cobro button[type="submit"]:disabled {
+    background: #D9C6AE;
+    color: #6E5947;
+    cursor: not-allowed;
+}
+
+.formulario-cobro button[type="button"] {
+    background: var(--navi-white);
+    border-color: var(--navi-border);
+    color: var(--navi-brown);
+}
+
+.formulario-cobro button[type="button"]:hover {
+    background: var(--navi-orange-soft);
+}
+
+/* =========================================
+   VENTAS Y SUBPESTAÑAS
+   ========================================= */
+
+.subpestanas-ventas {
+    display: flex;
+    gap: 8px;
+    margin: 0 0 22px;
+    padding: 6px;
+    overflow-x: auto;
+    background: #F1E3CF;
+    border-radius: 12px;
+}
+
+.subpestanas-ventas button {
+    flex: 1;
+    min-width: max-content;
+    padding: 11px 14px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--navi-brown);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.18s ease;
+}
+
+.subpestanas-ventas button:hover {
+    background: rgba(255, 255, 255, 0.65);
+}
+
+/* Compatible con una clase activa si el JS la asigna */
+
+.subpestanas-ventas button.activa {
+    background: var(--navi-white);
+    border-color: var(--navi-border);
+    box-shadow: 0 2px 5px rgba(58, 36, 21, 0.06);
+}
+
+/* Paneles de Ventas */
+
+#ventas-hoy,
+#ventas-historial,
+#ventas-pedidos-terminados {
+    text-align: left;
+}
+
+#ventas-hoy > h2 {
+    margin-top: 0;
+}
+
+#resumen-ventas {
+    padding: 20px;
+    background: var(--navi-white);
+    border: 1px solid var(--navi-border);
+    border-top: 5px solid var(--navi-orange);
+    border-radius: var(--navi-radius);
+    box-shadow: var(--navi-shadow);
+}
+
+#resumen-ventas h3 {
+    margin: 0 0 16px;
+    font-size: 19px;
+}
+
+#resumen-ventas p {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    margin: 0;
+    padding: 13px 0;
+    border-bottom: 1px solid #F1E3CF;
+    font-size: 14px;
+}
+
+#resumen-ventas p:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+#ventas-total {
+    color: var(--navi-orange-dark);
+    font-size: 20px;
+    font-weight: 800;
+}
+
+/* =========================================
+   HISTORIAL DE CIERRES DIARIOS
+   ========================================= */
+
+#ventas-historial > div {
+    margin-bottom: 16px;
+    padding: 18px;
+    background: var(--navi-white);
+    border: 1px solid var(--navi-border);
+    border-radius: 14px;
+    box-shadow: var(--navi-shadow);
+}
+
+#ventas-historial h3 {
+    margin: 0 0 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--navi-border);
+    font-size: 19px;
+}
+
+#ventas-historial p {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+/* =========================================
+   RESUMEN FIJO DEL NUEVO PEDIDO
+   ========================================= */
+
 .resumen-pedido {
     position: fixed;
+    z-index: 1000;
+    right: 0;
     bottom: 0;
     left: 0;
-    width: 100%;
-    box-sizing: border-box;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
     align-items: center;
+    gap: 12px;
+    width: 100%;
     padding: 14px 16px;
-    background-color: #FFFFFF;
-    border-top: 2px solid #E8CDB0;
+    background: var(--navi-white);
+    border-top: 2px solid var(--navi-border);
     box-shadow: 0 -4px 16px rgba(58, 36, 21, 0.10);
-    z-index: 1000;
 }
 
 .resumen-total,
@@ -143,22 +567,23 @@ nav button:active {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    text-align: left;
 }
 
 .resumen-etiqueta {
+    color: var(--navi-brown-soft);
     font-size: 11px;
-    font-weight: bold;
+    font-weight: 800;
     letter-spacing: 0.8px;
-    color: #80664F;
 }
 
 .resumen-total strong {
-    color: #FF8400;
+    color: var(--navi-orange-dark);
     font-size: 22px;
 }
 
 .resumen-productos strong {
-    color: #3A2415;
+    color: var(--navi-brown);
     font-size: 16px;
 }
 
@@ -168,18 +593,275 @@ nav button:active {
     min-height: 48px;
     border: none;
     border-radius: 12px;
-    background-color: #FF8400;
-    color: #FFFFFF;
+    background: var(--navi-orange);
+    color: var(--navi-white);
     font-size: 16px;
-    font-weight: bold;
+    font-weight: 800;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.18s ease;
 }
 
 #crear-pedido:hover {
-    background-color: #E87500;
+    background: var(--navi-orange-dark);
 }
 
 #crear-pedido:active {
-    transform: scale(0.98);
+    transform: scale(0.99);
+}
+
+/* =========================================
+   ADAPTACIÓN A PANTALLAS PEQUEÑAS
+   ========================================= */
+
+@media (max-width: 600px) {
+    body {
+        padding-bottom: 165px;
+    }
+
+    nav {
+        gap: 5px;
+        padding: 8px;
+    }
+
+    nav button {
+        padding: 10px 5px;
+        font-size: 12px;
+    }
+
+    .pestana {
+        padding: 18px 12px;
+    }
+
+    #lista-pedidos-pendientes,
+    #ventas-pedidos-terminados {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+    }
+
+    .pedido {
+        padding-right: 14px;
+        padding-left: 14px;
+    }
+
+    .pedido.tarjeta-pedido::before,
+    .pedido.pedido-terminado::before {
+        margin-right: -14px;
+        margin-left: -14px;
+        padding: 12px 14px;
+    }
+
+    .subpestanas-ventas {
+        gap: 5px;
+    }
+
+    .subpestanas-ventas button {
+        padding: 10px 9px;
+        font-size: 12px;
+    }
+
+    #resumen-ventas {
+        padding: 16px;
+    }
+
+    .producto {
+        gap: 9px;
+        padding: 10px;
+    }
+
+    .producto-imagen {
+        width: 65px;
+        height: 65px;
+    }
+
+    .resumen-pedido {
+        gap: 10px;
+        padding: 12px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Total destacado en los tickets */
+.pedido > .pedido-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 16px 0;
+    padding: 12px;
+    background: var(--navi-yellow-light);
+    border: 1px solid var(--navi-yellow);
+    border-radius: 10px;
+    color: var(--navi-brown);
+    font-size: 16px;
+    font-weight: 800;
+}
+
+/* Estados de pago en los tickets */
+.pedido-estado-pago {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    margin: 8px 0 14px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.pedido-estado-pago.por-cobrar {
+    color: var(--navi-red);
+    background: var(--navi-red-bg);
+    border: 1px solid #F0B9B4;
+}
+
+.pedido-estado-pago.pagado {
+    color: var(--navi-green);
+    background: var(--navi-green-bg);
+    border: 1px solid #A9D9B6;
+}
+
+
+/* ===== NAVIBURGER v0.7.0: VENTAS ===== */
+
+/* Subpestañas de ventas */
+.subpestanas-ventas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 18px 0 24px;
+    padding: 8px;
+    background: var(--navi-white);
+    border: 1px solid var(--navi-border);
+    border-radius: var(--navi-radius);
+    box-shadow: var(--navi-shadow);
+}
+
+.subpestanas-ventas button {
+    flex: 1 1 140px;
+    margin: 0;
+    padding: 12px 16px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--navi-brown);
+    font-weight: 700;
+    transition: background 0.18s ease, color 0.18s ease;
+}
+
+.subpestanas-ventas button:hover {
+    background: var(--navi-orange-soft);
+}
+
+.subpestanas-ventas button.activa {
+    background: var(--navi-orange);
+    color: var(--navi-white);
+    box-shadow: 0 3px 8px rgba(217, 102, 0, 0.2);
+}
+
+/* Resumen de ventas de hoy */
+#resumen-ventas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin: 18px 0 26px;
+    padding: 20px;
+    background: var(--navi-white);
+    border: 1px solid var(--navi-border);
+    border-radius: var(--navi-radius);
+    box-shadow: var(--navi-shadow);
+}
+
+#resumen-ventas h3 {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--navi-border);
+    color: var(--navi-brown);
+}
+
+#resumen-ventas p {
+    margin: 0;
+    padding: 14px;
+    background: var(--navi-cream);
+    border-radius: 12px;
+    color: var(--navi-brown-soft);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#resumen-ventas span {
+    display: block;
+    margin-top: 8px;
+    color: var(--navi-orange-dark);
+    font-size: 24px;
+    font-weight: 800;
+}
+
+/* Tarjetas de cierres y pedidos terminados */
+#ventas-historial,
+#ventas-pedidos-terminados {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    align-items: start;
+    gap: 18px;
+    margin-top: 18px;
+}
+
+#ventas-historial > .cierre-diario,
+#ventas-historial > .pedido,
+#ventas-pedidos-terminados > .pedido {
+    min-width: 0;
+    margin: 0;
+}
+
+/* Mensajes vacíos */
+#ventas-historial:empty,
+#ventas-pedidos-terminados:empty {
+    display: block;
+}
+
+/* Adaptación a pantallas pequeñas */
+@media (max-width: 520px) {
+    .subpestanas-ventas {
+        gap: 6px;
+        padding: 6px;
+    }
+
+    .subpestanas-ventas button {
+        flex-basis: 100%;
+    }
+
+    #resumen-ventas {
+        grid-template-columns: 1fr;
+        padding: 14px;
+    }
+}
+
+
+/* Subpestañas de ventas en una sola fila */
+.subpestanas-ventas {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.subpestanas-ventas button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+/* En móviles, no apilar los botones */
+@media (max-width: 520px) {
+    .subpestanas-ventas button {
+        flex: 0 0 auto;
+    }
 }
