@@ -547,51 +547,59 @@ function guardarHistorial(dia) {
 
         const almacen = transaccion.objectStore("historial");
         let errorOperacion = null;
+        let diaGuardado = null;
 
         const solicitud = almacen.getAll();
 
         solicitud.onsuccess = () => {
-            const yaExiste = solicitud.result.some(
+            const cierreExistente = solicitud.result.find(
                 registro => registro.fecha === dia.fecha
             );
 
-            if (yaExiste) {
-                errorOperacion = new Error(
-                    `Ya existe un cierre diario para ${dia.fecha}.`
-                );
-                transaccion.abort();
-                return;
+            // Si ya existe un cierre para esta fecha,
+            // conservar su ID y actualizar sus datos.
+            if (cierreExistente) {
+                diaGuardado = {
+                    ...dia,
+                    id: cierreExistente.id
+                };
+            } else {
+                diaGuardado = dia;
             }
 
-            almacen.add(dia);
+            const solicitudGuardar = almacen.put(diaGuardado);
+
+            solicitudGuardar.onerror = () => {
+                errorOperacion =
+                    solicitudGuardar.error ||
+                    new Error("No se pudo guardar el cierre diario.");
+
+                transaccion.abort();
+            };
         };
 
         solicitud.onerror = () => {
-            errorOperacion = solicitud.error;
+            errorOperacion =
+                solicitud.error ||
+                new Error("No se pudo consultar el historial.");
+
             transaccion.abort();
         };
 
         transaccion.oncomplete = () => {
-            resolve(dia);
-        };
-
-        transaccion.onerror = () => {
-            reject(
-                errorOperacion ||
-                transaccion.error ||
-                new Error("No se pudo guardar el cierre diario.")
-            );
+            resolve(diaGuardado);
         };
 
         transaccion.onabort = () => {
             reject(
                 errorOperacion ||
                 transaccion.error ||
-                new Error("Se canceló el cierre diario.")
+                new Error("No se pudo actualizar el cierre diario.")
             );
         };
     });
 }
+
 
 
 function obtenerHistorial() {
