@@ -265,10 +265,12 @@ function cambiarPestana(nombrePestana) {
     });
 
     const botonActivo = document.querySelector(
-        `[data-pestana="${nombrePestana}"]`
+        `.boton-pestana[data-pestana="${nombrePestana}"]`
     );
 
-    botonActivo.classList.add("activa");
+    if (botonActivo) {
+        botonActivo.classList.add("activa");
+    }
 }
 
 
@@ -909,3 +911,65 @@ async function actualizarVentas() {
         console.error("Error al actualizar las ventas:", error);
     }
 }
+
+
+/* =========================================
+   MENÚ Y VISTA ACERCA DE
+   ========================================= */
+
+const botonMenu = document.getElementById("boton-menu");
+const menuDesplegable = document.getElementById("menu-desplegable");
+const botonAcerca = document.getElementById("boton-acerca");
+const botonVolverAcerca = document.getElementById("boton-volver-acerca");
+
+let ultimaPestanaPrincipal = "nuevo-pedido";
+
+function cerrarMenuSecundario() {
+    menuDesplegable.hidden = true;
+    botonMenu.setAttribute("aria-expanded", "false");
+    botonMenu.setAttribute("aria-label", "Abrir menú");
+}
+
+botonMenu.addEventListener("click", () => {
+    const seAbrira = menuDesplegable.hidden;
+    menuDesplegable.hidden = !seAbrira;
+    botonMenu.setAttribute("aria-expanded", String(seAbrira));
+    botonMenu.setAttribute(
+        "aria-label",
+        seAbrira ? "Cerrar menú" : "Abrir menú"
+    );
+});
+
+botonAcerca.addEventListener("click", () => {
+    const pestanaActiva = document.querySelector(
+        ".boton-pestana.activa[data-pestana]"
+    );
+
+    if (pestanaActiva) {
+        ultimaPestanaPrincipal = pestanaActiva.dataset.pestana;
+    }
+
+    cerrarMenuSecundario();
+    cambiarPestana("acerca-de");
+    window.scrollTo({ top: 0, behavior: "auto" });
+});
+
+botonVolverAcerca.addEventListener("click", () => {
+    cambiarPestana(ultimaPestanaPrincipal);
+    window.scrollTo({ top: 0, behavior: "auto" });
+});
+
+document.addEventListener("click", (evento) => {
+    const contenedorMenu = document.querySelector(".menu-contenedor");
+
+    if (!contenedorMenu.contains(evento.target)) {
+        cerrarMenuSecundario();
+    }
+});
+
+document.addEventListener("keydown", (evento) => {
+    if (evento.key === "Escape" && !menuDesplegable.hidden) {
+        cerrarMenuSecundario();
+        botonMenu.focus();
+    }
+});

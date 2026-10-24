@@ -13,10 +13,28 @@
 
     <div class="encabezado">
 
-        <img src="images/logo.png" alt="Logotipo" width="105" height="100">
+        <div class="encabezado-superior">
+            <img src="images/logo.png" alt="Logotipo" width="105" height="100">
 
+            <div class="menu-contenedor">
+                <button
+                    id="boton-menu"
+                    class="boton-menu"
+                    type="button"
+                    aria-label="Abrir menú"
+                    aria-expanded="false"
+                    aria-controls="menu-desplegable"
+                >☰</button>
 
-        <! ----Navegación---- >
+                <div id="menu-desplegable" class="menu-desplegable" hidden>
+                    <button id="boton-acerca" type="button">
+                        Acerca de Naviburger
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navegación principal -->
         <nav>
             <button class="boton-pestana" data-pestana="nuevo-pedido">Nuevo pedido</button>
             <button class="boton-pestana" data-pestana="pendientes">Pedidos pendientes</button>
@@ -405,6 +423,70 @@
 
     </main>
 
+
+
+    <!-- ============================== -->
+    <!-- VISTA: ACERCA DE NAVIBURGER -->
+    <!-- ============================== -->
+
+    <main id="acerca-de" class="pestana">
+        <section class="acerca-contenido">
+            <h1>Acerca de Naviburger</h1>
+
+            <section class="acerca-seccion">
+                <h2>Créditos</h2>
+                <p>
+                    Desarrollado por
+                    <a href="https://github.com/arix0426-beep"
+                       target="_blank"
+                       rel="noopener noreferrer">Arix Beep</a>.
+                </p>
+            </section>
+
+            <section class="acerca-seccion">
+                <h2>¿Qué es Naviburger?</h2>
+                <p>
+                    Naviburger es una aplicación web diseñada para organizar
+                    los pedidos y las ventas del negocio de hamburguesas.
+                </p>
+            </section>
+
+            <section class="acerca-seccion">
+                <h2>Funciones principales</h2>
+                <ul>
+                    <li>Crear pedidos y calcular sus totales.</li>
+                    <li>Consultar y administrar pedidos pendientes.</li>
+                    <li>Marcar pedidos como terminados.</li>
+                    <li>Registrar las ventas del día.</li>
+                    <li>Consultar cierres diarios e historial disponible.</li>
+                    <li>Guardar los datos localmente para recuperarlos al volver a abrir la aplicación.</li>
+                </ul>
+            </section>
+
+            <section class="acerca-seccion">
+                <h2>Detalles técnicos</h2>
+                <ul>
+                    <li><strong>Tecnologías:</strong> HTML, CSS y JavaScript.</li>
+                    <li><strong>Almacenamiento:</strong> IndexedDB del navegador.</li>
+                    <li><strong>Base de datos:</strong> <code>naviburgerDB</code>.</li>
+                    <li><strong>Almacenes:</strong> <code>pedidos</code> e <code>historial</code>.</li>
+                </ul>
+                <p class="acerca-nota">
+                    Los datos se guardan en el navegador de este dispositivo.
+                    Borrar los datos del sitio o del navegador puede afectar su recuperación.
+                </p>
+            </section>
+
+            <section class="acerca-seccion">
+                <h2>Licencia</h2>
+                <p>Pendiente de definir.</p>
+            </section>
+
+            <button id="boton-volver-acerca" class="boton-volver" type="button">
+                ← Volver
+            </button>
+        </section>
+    </main>
 
     <script src="js/database.js"></script>
     <script src="js/app.js"></script>
