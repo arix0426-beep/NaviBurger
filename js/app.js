@@ -64,24 +64,14 @@ const productos = [
         cantidad: 0
     },
     {
-        nombre: "Sincronavi",
-        precio: 30,
-        cantidad: 0
+        nombre: "Boneless",
+        precio: 45,
+        cantidad: 0,
     },
     {
-        nombre: "Sincronavi con papas",
-        precio: 50,
-        cantidad: 0
-    },
-    {
-        nombre: "Sincronavi Especial",
+        nombre: "Salchipapas",
         precio: 40,
-        cantidad: 0
-    },
-    {
-        nombre: "Sincronavi Especial con papas",
-        precio: 60,
-        cantidad: 0
+        cantidad: 0,
     },
     {
         nombre: "Orden de papas sola",
