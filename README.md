@@ -4,9 +4,10 @@ Aplicación web para gestionar los pedidos, los cobros y las ventas de **Navibur
 
 ## 📌 Versión actual
 
-**v1.0.0 — Primera versión estable**
+**v1.2 — Versión estable con un menú con productos correctos**
 
 Esta versión reúne las funciones principales de gestión de pedidos y ventas, junto con mejoras visuales y de navegación. Incorpora el registro independiente de pagos y finalización de pedidos, el historial de pedidos terminados y una interfaz renovada con una paleta de colores naranja y crema.
+Al igual que se hicieron unos pequeños cambios en los productos del menú.
 
 ## ✨ Funciones
 
@@ -97,6 +98,7 @@ Naviburger/
 - **v0.6.0** — Implementación de cobros, cálculo de cambio, finalización independiente de pedidos, historial de pedidos terminados y ajustes en las ventas.
 - **v0.7.0** — Renovación visual, mejoras en la presentación de los pedidos, indicadores de pago y navegación adaptable.
 - **v1.0.0** — Primera versión estable que integra las funciones principales de pedidos, cobros, ventas, historial y cierres diarios.
+- **v1.2** - Cambios en el menú, eliminando y agregando productos.
 
 ## 🧪 Snapshots y respaldos
 
